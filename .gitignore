@@ -1,0 +1,18 @@
+# Build artifacts
+/target/
+/dist/
+/extension-dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Rust
+**/*.rs.bk
+Cargo.lock

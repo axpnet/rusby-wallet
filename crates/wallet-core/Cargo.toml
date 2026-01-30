@@ -1,0 +1,49 @@
+[package]
+name = "wallet-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# BIP39/BIP32
+bip39 = { version = "2", features = ["rand"] }
+bip32 = { version = "0.5", features = ["alloc"] }
+
+# EVM / secp256k1
+k256 = { version = "0.13", features = ["ecdsa", "sha256"] }
+tiny-keccak = { version = "2", features = ["keccak"] }
+
+# Ed25519 (Solana, TON)
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+curve25519-dalek = "4"
+
+# Bitcoin
+# bdk_wallet = { version = "1", default-features = false }
+
+# Cosmos
+bech32 = "0.11"
+
+# Encoding
+bs58 = "0.5"
+hex = "0.4"
+
+# Encryption
+aes-gcm = "0.10"
+rand = "0.8"
+sha2 = "0.10"
+hmac = "0.12"
+pbkdf2 = { version = "0.12", features = ["hmac"] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# WASM support
+wasm-bindgen = { workspace = true }
+getrandom = { version = "0.2", features = ["js"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

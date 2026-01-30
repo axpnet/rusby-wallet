@@ -1,0 +1,10 @@
+[build]
+target = "crates/wallet-ui/index.html"
+dist = "dist"
+
+[watch]
+watch = ["crates/wallet-ui/src", "crates/wallet-core/src"]
+
+[serve]
+address = "127.0.0.1"
+port = 3000

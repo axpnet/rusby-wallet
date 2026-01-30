@@ -1,0 +1,19 @@
+[package]
+name = "wallet-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+wallet-core = { path = "../wallet-core" }
+leptos = { version = "0.7", features = ["csr"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { version = "0.3", features = [
+    "Window", "Document", "Storage", "HtmlInputElement",
+    "HtmlElement", "Navigator", "Clipboard", "console",
+] }
+js-sys = "0.3"
+gloo-timers = "0.3"
+wasm-bindgen-futures = "0.4"
