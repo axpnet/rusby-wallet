@@ -44,9 +44,10 @@ pub fn ReceivePage() -> impl IntoView {
             </div>
 
             <div class="qr-container">
-                <div class="qr-code">
-                    <p class="text-muted text-sm">"QR Code"</p>
-                </div>
+                <div class="qr-code" inner_html=move || {
+                    let addr = address();
+                    wallet_core::qr::generate_qr_svg(&addr, 200).unwrap_or_default()
+                } />
 
                 <p class="text-sm text-muted">{move || active_info().0} " Address"</p>
 

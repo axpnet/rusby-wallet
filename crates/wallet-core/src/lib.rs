@@ -16,3 +16,5 @@ pub mod bip32_utils;
 pub mod chains;
 pub mod crypto;
 pub mod wallet;
+pub mod qr;
+pub mod tx;

@@ -5,3 +5,4 @@ pub mod navbar;
 pub mod sidebar;
 pub mod chain_selector;
 pub mod address_display;
+pub mod confirmation_modal;

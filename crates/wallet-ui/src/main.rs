@@ -5,6 +5,7 @@ mod app;
 mod state;
 mod pages;
 mod components;
+pub mod rpc;
 
 use leptos::prelude::*;
 use app::App;

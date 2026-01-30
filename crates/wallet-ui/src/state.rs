@@ -23,6 +23,7 @@ pub struct WalletState {
     pub addresses: HashMap<String, String>,
     pub active_chain: String,
     pub balances: HashMap<String, String>,
+    pub balance_loading: bool,
 }
 
 impl Default for WalletState {
@@ -33,6 +34,7 @@ impl Default for WalletState {
             addresses: HashMap::new(),
             active_chain: "ethereum".to_string(),
             balances: HashMap::new(),
+            balance_loading: false,
         }
     }
 }

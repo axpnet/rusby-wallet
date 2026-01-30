@@ -34,7 +34,16 @@ bash build-extension.sh            # build estensione Chrome
 
 1. Selezione chain durante creazione wallet
 2. Supporto chain custom (EVM e Cosmos SDK)
-3. Balance reale via RPC
-4. Firma e invio transazioni
-5. QR code ricezione
-6. Tauri desktop
+3. ~~Balance reale via RPC~~ (DONE v0.2.0)
+4. ~~Firma e invio transazioni~~ (DONE v0.2.0)
+5. ~~QR code ricezione~~ (DONE v0.2.0)
+6. WalletConnect v2
+7. Toggle Mainnet/Testnet
+8. Export/import backup wallet
+9. Tauri desktop
+
+## Moduli principali
+
+- `crates/wallet-core/src/tx/` — firma transazioni (evm, solana, ton, cosmos)
+- `crates/wallet-core/src/qr.rs` — generazione QR code SVG
+- `crates/wallet-ui/src/rpc/` — client RPC per balance e broadcast (evm, solana, ton, cosmos)

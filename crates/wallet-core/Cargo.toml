@@ -34,6 +34,12 @@ sha2 = "0.10"
 hmac = "0.12"
 pbkdf2 = { version = "0.12", features = ["hmac"] }
 
+# QR code generation
+qrcode = "0.14"
+
+# RLP encoding (EVM transactions)
+rlp = "0.6"
+
 # Serialization
 serde = { workspace = true }
 serde_json = { workspace = true }

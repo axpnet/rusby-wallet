@@ -75,6 +75,7 @@ pub fn Onboarding() -> impl IntoView {
                     addresses: wallet.addresses,
                     active_chain: "ethereum".into(),
                     balances: std::collections::HashMap::new(),
+                    balance_loading: false,
                 });
 
                 set_page.set(AppPage::Dashboard);

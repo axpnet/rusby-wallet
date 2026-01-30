@@ -38,11 +38,14 @@ wallet-multichain-rust/
 │   │   ├── bip32_utils.rs  # HD key derivation (secp256k1 + Ed25519)
 │   │   ├── chains/         # Derivazione indirizzi per chain
 │   │   ├── crypto.rs       # AES-256-GCM encrypt/decrypt
-│   │   └── wallet.rs       # Wallet manager (create/unlock)
+│   │   ├── wallet.rs       # Wallet manager (create/unlock)
+│   │   ├── qr.rs           # QR code generation (SVG)
+│   │   └── tx/             # Transaction signing (EVM, Solana, TON, Cosmos)
 │   └── wallet-ui/          # Frontend Leptos → WASM
 │       ├── app.rs          # Root component + layout
 │       ├── pages/          # Onboarding, Login, Dashboard, Send, Receive
-│       ├── components/     # Navbar, Sidebar, ChainSelector, AddressDisplay
+│       ├── components/     # Navbar, Sidebar, ChainSelector, AddressDisplay, ConfirmationModal
+│       ├── rpc/            # RPC client per chain (balance, nonce, broadcast)
 │       ├── state.rs        # Stato globale + storage helpers
 │       └── style.css       # CSS con tema dark/light
 ├── extension/              # Manifest v3 + icone
@@ -92,9 +95,9 @@ cargo test -p wallet-core -- --nocapture
 
 - [ ] Selezione chain durante creazione wallet (attiva/disattiva)
 - [ ] Aggiunta chain custom (EVM custom RPC, Cosmos SDK custom)
-- [ ] Balance reale via RPC per ogni chain
-- [ ] Firma e invio transazioni reale
-- [ ] Generazione QR code per ricezione
+- [x] Balance reale via RPC per ogni chain
+- [x] Firma e invio transazioni reale
+- [x] Generazione QR code per ricezione
 - [ ] WalletConnect v2
 - [ ] Toggle Mainnet/Testnet
 - [ ] Export/import backup wallet
