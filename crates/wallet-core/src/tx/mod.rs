@@ -8,6 +8,11 @@ pub mod solana;
 pub mod ton;
 pub mod cosmos;
 pub mod bitcoin;
+pub mod litecoin;
+pub mod stellar;
+pub mod ripple;
+pub mod dogecoin;
+pub mod tron;
 
 use crate::chains::ChainId;
 use serde::{Deserialize, Serialize};

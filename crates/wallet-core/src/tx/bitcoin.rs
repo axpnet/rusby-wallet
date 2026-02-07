@@ -76,8 +76,13 @@ impl BitcoinTransaction {
     }
 
     /// Sign the transaction with a private key (all inputs signed with same key)
-    /// Returns a fully serialized SegWit transaction
+    /// Returns a fully serialized SegWit transaction (Bitcoin by default)
     pub fn sign(&self, private_key: &[u8; 32]) -> Result<SignedTransaction, String> {
+        self.sign_for_chain(private_key, ChainId::Bitcoin)
+    }
+
+    /// Sign the transaction for a specific UTXO chain (Bitcoin or Litecoin)
+    pub fn sign_for_chain(&self, private_key: &[u8; 32], chain_id: ChainId) -> Result<SignedTransaction, String> {
         let signing_key = SigningKey::from_bytes(private_key.into())
             .map_err(|e| format!("Chiave non valida: {}", e))?;
         let verifying_key = signing_key.verifying_key();
@@ -134,7 +139,7 @@ impl BitcoinTransaction {
         txid_display.reverse();
 
         Ok(SignedTransaction {
-            chain_id: ChainId::Bitcoin,
+            chain_id,
             raw_bytes: raw,
             tx_hash: hex::encode(txid_display),
         })

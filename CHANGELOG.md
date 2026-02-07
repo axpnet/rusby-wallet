@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.9.0] - 2026-02-07
+
+### Aggiunto — Litecoin + Stellar + Ripple + Dogecoin + TRON (14 → 16 chain)
+
+#### Nuove chain
+- **Litecoin**: BIP84 m/84'/2'/0'/0/0 → bech32 (ltc1...) P2WPKH, segwit completo
+- **Stellar**: SLIP-10 Ed25519 m/44'/148'/0' → StrKey (G...), XDR binary TX
+- **Ripple (XRP)**: secp256k1 m/44'/144'/0'/0/0 → Base58Check Ripple alphabet (r...), binary serialization
+- **Dogecoin**: secp256k1 m/44'/3'/0'/0/0 → Base58Check P2PKH legacy (D...), legacy sighash TX
+- **TRON**: secp256k1 m/44'/195'/0'/0/0 → Keccak256 + Base58Check (T...), API-assisted TX via TronGrid
+
+#### Dettagli tecnici per chain
+- **Litecoin TX**: Segwit P2WPKH (riuso BitcoinTransaction con ChainId diverso), fee dinamica via litecoinspace.org
+- **Stellar TX**: XDR binary serialization, Ed25519 firma locale, Horizon API per submit
+- **Ripple TX**: Binary serialization custom (field codes + VL encoding), secp256k1 DER + SHA-512 Half, rippled JSON-RPC
+- **Dogecoin TX**: P2PKH legacy (diverso da BTC P2WPKH!) — legacy sighash, scriptSig con DER+pubkey, no witness
+- **TRON TX**: API-assisted — createtransaction via TronGrid, firma locale SHA256+secp256k1 (65 bytes r||s||v), verifica SICUREZZA parametri pre-firma
+
+#### File per chain (pattern ripetuto × 5)
+- `chains/{chain}.rs` — derivazione indirizzo + test
+- `tx/{chain}.rs` — costruzione e firma TX + test
+- `rpc/{chain}.rs` — balance query, broadcast, UTXO/fee
+- `tx_send/{chain}.rs` — logica invio completa con zeroize
+
+#### Aggiornamenti cross-cutting
+- `chains/mod.rs`: ChainId enum 14→16 varianti, get_chains() mainnet+testnet
+- `wallet.rs`: ALL_CHAIN_IDS + derive_addresses_filtered() per tutte le 16 chain
+- `caip.rs`: mapping CAIP-2 per Litecoin, Stellar, Ripple, Dogecoin, TRON
+- `rpc/mod.rs`: dispatch balance per 16 chain
+- `rpc/prices.rs`: CoinGecko mapping per tutte le 16 chain
+- `tx_send/mod.rs`: dispatch invio per 16 chain
+- `state.rs`: icone chain selector
+- `onboarding.rs`: AVAILABLE_CHAINS con 16 entry
+- `send.rs`: fee estimation per tutte le chain
+
+### Metriche
+- **176 test** unitari passanti (da 123) — 53 nuovi per 5 chain
+- ~19.000 LOC Rust + ~770 JS
+- 0 errori compilazione
+- 40 nuovi file, ~30 file modificati
+- Nessuna nuova dipendenza Cargo
+
 ## [0.8.1] - 2026-02-07
 
 ### Aggiunto — UX & Layout Overhaul

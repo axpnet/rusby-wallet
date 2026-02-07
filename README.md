@@ -1,6 +1,6 @@
 # Rusby Wallet
 
-Wallet multi-chain scritto interamente in Rust (~17.500 righe Rust, ~770 JS), compilato a WebAssembly per browser, estensione Chrome e desktop. Supporta 11 chain, token ERC-20/SPL/CW-20/Jetton, NFT, swap, 7 temi + custom, i18n (9 lingue), layout fullpage Talisman-like e injected provider EIP-1193.
+Wallet multi-chain scritto interamente in Rust (~19.000 righe Rust, ~770 JS), compilato a WebAssembly per browser, estensione Chrome e desktop. Supporta 16 chain, token ERC-20/SPL/CW-20/Jetton, NFT, swap, 7 temi + custom, i18n (9 lingue), layout fullpage Talisman-like e injected provider EIP-1193.
 
 ## Stack
 
@@ -27,6 +27,11 @@ Wallet multi-chain scritto interamente in Rust (~17.500 righe Rust, ~770 JS), co
 | Bitcoin | secp256k1 / BIP84 m/84'/0'/0'/0/0 | Bech32 (P2WPKH bc1...) |
 | Cosmos Hub | secp256k1 / BIP44 m/44'/118'/0'/0/0 | Bech32 (cosmos1...) |
 | Osmosis | secp256k1 / BIP44 m/44'/118'/0'/0/0 | Bech32 (osmo1...) |
+| Litecoin | secp256k1 / BIP84 m/84'/2'/0'/0/0 | Bech32 (ltc1...) |
+| Stellar | Ed25519 / SLIP-10 m/44'/148'/0' | Base32 (G...) |
+| Ripple | secp256k1 / BIP44 m/44'/144'/0'/0/0 | Base58check (r...) |
+| Dogecoin | secp256k1 / BIP44 m/44'/3'/0'/0/0 | Base58check P2PKH (D...) |
+| TRON | secp256k1 / BIP44 m/44'/195'/0'/0/0 | Base58check (T...) |
 
 ## Architettura
 
@@ -36,7 +41,7 @@ wallet-multichain-rust/
 │   ├── wallet-core/          # Libreria crypto (no UI, testabile standalone)
 │   │   ├── bip39_utils.rs    # Mnemonic generation/validation
 │   │   ├── bip32_utils.rs    # HD key derivation (secp256k1 + Ed25519)
-│   │   ├── chains/           # Derivazione indirizzi per chain (EVM, Solana, TON, Cosmos, Bitcoin)
+│   │   ├── chains/           # Derivazione indirizzi per chain (EVM, Solana, TON, Cosmos, Bitcoin, Litecoin, Stellar, Ripple, Dogecoin, TRON)
 │   │   ├── crypto.rs         # AES-256-GCM encrypt/decrypt
 │   │   ├── wallet.rs         # Wallet manager (create/unlock)
 │   │   ├── qr.rs             # QR code generation (SVG)
@@ -45,10 +50,10 @@ wallet-multichain-rust/
 │   │   ├── tokens/           # Token support (ERC-20, SPL, CW-20, Jetton)
 │   │   ├── signing/          # Firma messaggi (EIP-191 personal_sign, EIP-712 typed data)
 │   │   ├── security/         # Phishing detection, scam address warning
-│   │   └── tx/               # Transaction signing (EVM, Solana, TON, Cosmos, Bitcoin)
+│   │   └── tx/               # Transaction signing (EVM, Solana, TON, Cosmos, Bitcoin, Litecoin, Stellar, Ripple, Dogecoin, TRON)
 │   └── wallet-ui/            # Frontend Leptos → WASM
 │       ├── app.rs            # Root component + layout
-│       ├── i18n/             # Internazionalizzazione (9 lingue, ~304 chiavi)
+│       ├── i18n/             # Internazionalizzazione (9 lingue, ~331 chiavi)
 │       ├── pages/            # Onboarding, Login, Dashboard, Send, Receive,
 │       │                     #   NFT, Swap, History, Settings, Approvals, WalletConnect
 │       ├── components/       # Navbar, Sidebar, TopNav, ChainSidebar, ChainSelector,
@@ -102,10 +107,10 @@ bash build-extension.sh
 
 ## Test
 
-**123 test unitari** coprono derivazione chiavi, cifratura, encoding indirizzi, firma transazioni, token encoding, sicurezza e NFT/swap types.
+**176 test unitari** coprono derivazione chiavi, cifratura, encoding indirizzi, firma transazioni per 16 chain, token encoding, sicurezza e NFT/swap types.
 
 ```bash
-# Test wallet-core (123 test)
+# Test wallet-core (176 test)
 cargo test -p wallet-core
 
 # Test con output verboso
@@ -135,6 +140,8 @@ cargo test -p wallet-core -- --nocapture
 - [x] Layout fullpage Talisman-like — TopNav orizzontale + ChainSidebar verticale
 - [x] UX onboarding — spinner animato, loading dinamico, security badge
 - [x] Fix OOM WASM — `signal.with()` ovunque, Memos, interval leak fix
+- [x] Litecoin (P2WPKH bech32), Stellar (Ed25519), Ripple (secp256k1 base58check)
+- [x] Dogecoin (P2PKH legacy), TRON (API-assisted, base58check)
 - [ ] Build desktop con Tauri 2.0
 - [ ] Supporto multi-wallet (più seed phrase)
 

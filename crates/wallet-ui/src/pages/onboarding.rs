@@ -30,6 +30,11 @@ const AVAILABLE_CHAINS: &[ChainInfo] = &[
     ChainInfo { id: "ton", name: "TON", icon: "TON" },
     ChainInfo { id: "cosmos", name: "Cosmos Hub", icon: "ATOM" },
     ChainInfo { id: "osmosis", name: "Osmosis", icon: "OSMO" },
+    ChainInfo { id: "litecoin", name: "Litecoin", icon: "LTC" },
+    ChainInfo { id: "stellar", name: "Stellar", icon: "XLM" },
+    ChainInfo { id: "ripple", name: "XRP Ledger", icon: "XRP" },
+    ChainInfo { id: "dogecoin", name: "Dogecoin", icon: "DOGE" },
+    ChainInfo { id: "tron", name: "TRON", icon: "TRX" },
 ];
 
 /// Default enabled chains (fast to derive)

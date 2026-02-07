@@ -106,6 +106,11 @@ pub fn chain_list_for(testnet: bool) -> Vec<ChainDisplay> {
             ChainId::CosmosHub => ("cosmos", "C"),
             ChainId::Osmosis => ("osmosis", "Os"),
             ChainId::Bitcoin => ("bitcoin", "₿"),
+            ChainId::Litecoin => ("litecoin", "Ł"),
+            ChainId::Stellar => ("stellar", "✦"),
+            ChainId::Ripple => ("ripple", "X"),
+            ChainId::Dogecoin => ("dogecoin", "D"),
+            ChainId::Tron => ("tron", "T"),
         };
         ChainDisplay {
             id: id.into(),

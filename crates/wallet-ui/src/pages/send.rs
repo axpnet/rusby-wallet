@@ -120,6 +120,28 @@ pub fn SendPage() -> impl IntoView {
             } else {
                 set_estimated_fee.set("~0.1 TON".into());
             }
+        } else if active_chain() == "litecoin" {
+            set_estimated_fee.set(t("send.estimating"));
+            wasm_bindgen_futures::spawn_local(async move {
+                match crate::rpc::litecoin::get_fee_estimates(false).await {
+                    Ok(fees) => {
+                        let fee_litoshi = fees.half_hour * 141;
+                        let fee_ltc = fee_litoshi as f64 / 100_000_000.0;
+                        set_estimated_fee.set(format!("~{:.8} LTC ({} sat/vB)", fee_ltc, fees.half_hour));
+                    }
+                    Err(_) => {
+                        set_estimated_fee.set("~0.00001 LTC".into());
+                    }
+                }
+            });
+        } else if active_chain() == "stellar" {
+            set_estimated_fee.set("~0.00001 XLM (100 stroops)".into());
+        } else if active_chain() == "ripple" {
+            set_estimated_fee.set("~0.000012 XRP (12 drops)".into());
+        } else if active_chain() == "dogecoin" {
+            set_estimated_fee.set("~0.01 DOGE".into());
+        } else if active_chain() == "tron" {
+            set_estimated_fee.set("~1 TRX (bandwidth)".into());
         } else if active_chain() == "cosmos" || active_chain() == "osmosis" {
             if selected_token.get().is_empty() {
                 set_estimated_fee.set("~0.005".into());

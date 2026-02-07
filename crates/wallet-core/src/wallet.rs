@@ -11,7 +11,7 @@
 // Functions:
 //   create_wallet()         — Generate wallet from mnemonic, encrypt seed
 //   unlock_wallet()         — Decrypt seed and derive all addresses
-//   derive_all_addresses()  — Derive addresses for 11 chains from seed
+//   derive_all_addresses()  — Derive addresses for 13 chains from seed
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -24,6 +24,11 @@ use crate::chains::solana::derive_solana_address;
 use crate::chains::ton::derive_ton_address;
 use crate::chains::cosmos::derive_cosmos_address;
 use crate::chains::bitcoin::derive_bitcoin_address_for_network;
+use crate::chains::litecoin::derive_litecoin_address_for_network;
+use crate::chains::stellar::derive_stellar_address;
+use crate::chains::ripple::derive_ripple_address;
+use crate::chains::dogecoin::derive_dogecoin_address_for_network;
+use crate::chains::tron::derive_tron_address_for_network;
 use crate::crypto;
 
 /// Password strength levels
@@ -241,7 +246,8 @@ pub fn derive_all_addresses_for_network(seed: &[u8; 64], testnet: bool) -> Resul
 /// All supported chain IDs
 pub const ALL_CHAIN_IDS: &[&str] = &[
     "ethereum", "polygon", "bsc", "optimism", "base", "arbitrum",
-    "solana", "ton", "cosmos", "osmosis", "bitcoin",
+    "solana", "ton", "cosmos", "osmosis", "bitcoin", "litecoin", "stellar", "ripple",
+    "dogecoin", "tron",
 ];
 
 /// EVM chain IDs (share same address)
@@ -296,6 +302,31 @@ pub fn derive_addresses_filtered(
     // Bitcoin
     if is_enabled("bitcoin") {
         addresses.insert("bitcoin".to_string(), derive_bitcoin_address_for_network(seed, testnet)?);
+    }
+
+    // Litecoin
+    if is_enabled("litecoin") {
+        addresses.insert("litecoin".to_string(), derive_litecoin_address_for_network(seed, testnet)?);
+    }
+
+    // Stellar
+    if is_enabled("stellar") {
+        addresses.insert("stellar".to_string(), derive_stellar_address(seed)?);
+    }
+
+    // Ripple (XRP)
+    if is_enabled("ripple") {
+        addresses.insert("ripple".to_string(), derive_ripple_address(seed)?);
+    }
+
+    // Dogecoin (P2PKH)
+    if is_enabled("dogecoin") {
+        addresses.insert("dogecoin".to_string(), derive_dogecoin_address_for_network(seed, testnet)?);
+    }
+
+    // TRON
+    if is_enabled("tron") {
+        addresses.insert("tron".to_string(), derive_tron_address_for_network(seed, testnet)?);
     }
 
     Ok(addresses)

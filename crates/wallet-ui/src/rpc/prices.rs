@@ -19,6 +19,11 @@ fn chain_to_coingecko_id(chain_id: &str) -> Option<&'static str> {
         "cosmos" => Some("cosmos"),
         "osmosis" => Some("osmosis"),
         "bitcoin" => Some("bitcoin"),
+        "litecoin" => Some("litecoin"),
+        "stellar" => Some("stellar"),
+        "ripple" => Some("ripple"),
+        "dogecoin" => Some("dogecoin"),
+        "tron" => Some("tron"),
         _ => None,
     }
 }
@@ -26,7 +31,7 @@ fn chain_to_coingecko_id(chain_id: &str) -> Option<&'static str> {
 /// Fetch USD prices for all supported chains
 /// Returns HashMap<chain_id, usd_price>
 pub async fn fetch_prices() -> Result<HashMap<String, f64>, String> {
-    let coingecko_ids = "ethereum,matic-network,binancecoin,solana,the-open-network,cosmos,osmosis,bitcoin";
+    let coingecko_ids = "ethereum,matic-network,binancecoin,solana,the-open-network,cosmos,osmosis,bitcoin,litecoin,stellar,ripple,dogecoin,tron";
     let url = format!("{}?ids={}&vs_currencies=usd", COINGECKO_API, coingecko_ids);
 
     let json = super::get_json(&url).await?;
@@ -35,7 +40,8 @@ pub async fn fetch_prices() -> Result<HashMap<String, f64>, String> {
 
     let chain_ids = [
         "ethereum", "polygon", "bsc", "optimism", "base", "arbitrum",
-        "solana", "ton", "cosmos", "osmosis", "bitcoin",
+        "solana", "ton", "cosmos", "osmosis", "bitcoin", "litecoin", "stellar", "ripple",
+        "dogecoin", "tron",
     ];
 
     for chain_id in chain_ids {

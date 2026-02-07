@@ -17,6 +17,11 @@ pub fn caip2_to_chain_id(caip2: &str) -> Option<ChainId> {
         "cosmos:osmosis-1" => Some(ChainId::Osmosis),
         "bip122:000000000019d6689c085ae165831e93" => Some(ChainId::Bitcoin),
         "ton:mainnet" => Some(ChainId::Ton),
+        "bip122:12a765e31ffd4059bada1e25190f6e98" => Some(ChainId::Litecoin),
+        "stellar:pubnet" => Some(ChainId::Stellar),
+        "xrpl:0" => Some(ChainId::Ripple),
+        "bip122:1a91e3dace36e2be3bf030a65679fe821aa1d6ef92e7c9902eb318182c355691" => Some(ChainId::Dogecoin),
+        "tron:mainnet" => Some(ChainId::Tron),
         _ => None,
     }
 }
@@ -35,6 +40,11 @@ pub fn chain_id_to_caip2(chain_id: &ChainId) -> &'static str {
         ChainId::Osmosis => "cosmos:osmosis-1",
         ChainId::Bitcoin => "bip122:000000000019d6689c085ae165831e93",
         ChainId::Ton => "ton:mainnet",
+        ChainId::Litecoin => "bip122:12a765e31ffd4059bada1e25190f6e98",
+        ChainId::Stellar => "stellar:pubnet",
+        ChainId::Ripple => "xrpl:0",
+        ChainId::Dogecoin => "bip122:1a91e3dace36e2be3bf030a65679fe821aa1d6ef92e7c9902eb318182c355691",
+        ChainId::Tron => "tron:mainnet",
     }
 }
 
@@ -45,8 +55,11 @@ pub fn chain_id_to_namespace(chain_id: &ChainId) -> &'static str {
         ChainId::Optimism | ChainId::Base | ChainId::Arbitrum => "eip155",
         ChainId::Solana => "solana",
         ChainId::CosmosHub | ChainId::Osmosis => "cosmos",
-        ChainId::Bitcoin => "bip122",
+        ChainId::Bitcoin | ChainId::Litecoin | ChainId::Dogecoin => "bip122",
         ChainId::Ton => "ton",
+        ChainId::Stellar => "stellar",
+        ChainId::Ripple => "xrpl",
+        ChainId::Tron => "tron",
     }
 }
 
@@ -140,6 +153,8 @@ mod tests {
             ChainId::Optimism, ChainId::Base, ChainId::Arbitrum,
             ChainId::Solana, ChainId::CosmosHub, ChainId::Osmosis,
             ChainId::Bitcoin, ChainId::Ton,
+            ChainId::Litecoin, ChainId::Stellar, ChainId::Ripple,
+            ChainId::Dogecoin, ChainId::Tron,
         ];
         for id in all {
             let caip = chain_id_to_caip2(&id);

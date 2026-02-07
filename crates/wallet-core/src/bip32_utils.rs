@@ -49,6 +49,17 @@ impl DerivationPath {
         }
     }
 
+    /// Stellar uses hardened path: m/44'/148'/0' (SLIP-10 Ed25519)
+    pub fn stellar() -> Self {
+        Self {
+            purpose: 44,
+            coin_type: 148,
+            account: 0,
+            change: 0,
+            address_index: 0,
+        }
+    }
+
     /// Format as string
     pub fn to_string(&self) -> String {
         format!(

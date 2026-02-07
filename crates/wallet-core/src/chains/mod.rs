@@ -2,9 +2,9 @@
 // Copyright (C) 2025 axpnet & Claude Opus (Anthropic)
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// chains: Address derivation for all supported blockchains (11 chains)
+// chains: Address derivation for all supported blockchains (16 chains)
 //
-// Submodules: evm, solana, ton, cosmos
+// Submodules: evm, solana, ton, cosmos, bitcoin, litecoin, stellar, ripple, dogecoin, tron
 // Trait: Chain — derive_address(), name(), ticker(), chain_id()
 // Functions: supported_chains() — Config for all chains with RPC URLs
 
@@ -13,6 +13,11 @@ pub mod solana;
 pub mod ton;
 pub mod cosmos;
 pub mod bitcoin;
+pub mod litecoin;
+pub mod stellar;
+pub mod ripple;
+pub mod dogecoin;
+pub mod tron;
 
 use serde::{Deserialize, Serialize};
 
@@ -45,6 +50,11 @@ pub enum ChainId {
     Bitcoin,
     CosmosHub,
     Osmosis,
+    Litecoin,
+    Stellar,
+    Ripple,
+    Dogecoin,
+    Tron,
 }
 
 /// Supported chain configuration
@@ -183,6 +193,56 @@ pub fn get_chains(testnet: bool) -> Vec<ChainConfig> {
                     "https://rpc.testnet.osmosis.zone".into(),
                 ],
             },
+            ChainConfig {
+                id: ChainId::Litecoin,
+                name: "Litecoin Testnet".into(),
+                ticker: "tLTC".into(),
+                evm_chain_id: None,
+                coin_type: 2,
+                rpc_urls: vec![
+                    "https://litecoinspace.org/testnet/api".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Stellar,
+                name: "Stellar Testnet".into(),
+                ticker: "XLM".into(),
+                evm_chain_id: None,
+                coin_type: 148,
+                rpc_urls: vec![
+                    "https://horizon-testnet.stellar.org".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Ripple,
+                name: "XRP Testnet".into(),
+                ticker: "XRP".into(),
+                evm_chain_id: None,
+                coin_type: 144,
+                rpc_urls: vec![
+                    "https://s.altnet.rippletest.net:51234".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Dogecoin,
+                name: "Dogecoin Testnet".into(),
+                ticker: "tDOGE".into(),
+                evm_chain_id: None,
+                coin_type: 3,
+                rpc_urls: vec![
+                    "https://doge1.trezor.io/api/v2".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Tron,
+                name: "TRON Nile".into(),
+                ticker: "TRX".into(),
+                evm_chain_id: None,
+                coin_type: 195,
+                rpc_urls: vec![
+                    "https://nile.trongrid.io".into(),
+                ],
+            },
         ]
     } else {
         vec![
@@ -301,6 +361,57 @@ pub fn get_chains(testnet: bool) -> Vec<ChainConfig> {
                 coin_type: 118,
                 rpc_urls: vec![
                     "https://osmosis-rpc.polkachu.com".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Litecoin,
+                name: "Litecoin".into(),
+                ticker: "LTC".into(),
+                evm_chain_id: None,
+                coin_type: 2,
+                rpc_urls: vec![
+                    "https://litecoinspace.org/api".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Stellar,
+                name: "Stellar".into(),
+                ticker: "XLM".into(),
+                evm_chain_id: None,
+                coin_type: 148,
+                rpc_urls: vec![
+                    "https://horizon.stellar.org".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Ripple,
+                name: "XRP Ledger".into(),
+                ticker: "XRP".into(),
+                evm_chain_id: None,
+                coin_type: 144,
+                rpc_urls: vec![
+                    "https://xrplcluster.com".into(),
+                    "https://s1.ripple.com:51234".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Dogecoin,
+                name: "Dogecoin".into(),
+                ticker: "DOGE".into(),
+                evm_chain_id: None,
+                coin_type: 3,
+                rpc_urls: vec![
+                    "https://doge1.trezor.io/api/v2".into(),
+                ],
+            },
+            ChainConfig {
+                id: ChainId::Tron,
+                name: "TRON".into(),
+                ticker: "TRX".into(),
+                evm_chain_id: None,
+                coin_type: 195,
+                rpc_urls: vec![
+                    "https://api.trongrid.io".into(),
                 ],
             },
         ]

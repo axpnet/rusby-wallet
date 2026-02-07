@@ -8,6 +8,11 @@ pub mod solana;
 pub mod ton;
 pub mod cosmos;
 pub mod bitcoin;
+pub mod litecoin;
+pub mod stellar;
+pub mod ripple;
+pub mod dogecoin;
+pub mod tron;
 pub mod prices;
 pub mod erc20;
 pub mod spl;
@@ -56,7 +61,21 @@ pub async fn fetch_balance_for_network(chain_id: &str, address: &str, testnet: b
         ChainId::Bitcoin => {
             bitcoin::get_balance_for_network(address, testnet).await
         }
-        _ => Ok("0.0000".into()),
+        ChainId::Litecoin => {
+            litecoin::get_balance_for_network(address, testnet).await
+        }
+        ChainId::Stellar => {
+            stellar::get_balance(address, rpc_url).await
+        }
+        ChainId::Ripple => {
+            ripple::get_balance(address, rpc_url).await
+        }
+        ChainId::Dogecoin => {
+            dogecoin::get_balance_for_network(address, testnet).await
+        }
+        ChainId::Tron => {
+            tron::get_balance(address, rpc_url).await
+        }
     }
 }
 
@@ -177,5 +196,10 @@ fn chain_id_to_string(id: &ChainId) -> &'static str {
         ChainId::Bitcoin => "bitcoin",
         ChainId::CosmosHub => "cosmos",
         ChainId::Osmosis => "osmosis",
+        ChainId::Litecoin => "litecoin",
+        ChainId::Stellar => "stellar",
+        ChainId::Ripple => "ripple",
+        ChainId::Dogecoin => "dogecoin",
+        ChainId::Tron => "tron",
     }
 }

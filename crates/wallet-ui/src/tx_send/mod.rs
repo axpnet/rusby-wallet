@@ -7,6 +7,11 @@ pub mod solana;
 pub mod ton;
 pub mod cosmos;
 pub mod bitcoin;
+pub mod litecoin;
+pub mod stellar;
+pub mod ripple;
+pub mod dogecoin;
+pub mod tron;
 
 use wallet_core::chains::ChainId;
 use crate::logging::{log_info, log_error};
@@ -24,6 +29,11 @@ pub fn chain_id_to_string(id: &ChainId) -> String {
         ChainId::Bitcoin => "bitcoin",
         ChainId::CosmosHub => "cosmos",
         ChainId::Osmosis => "osmosis",
+        ChainId::Litecoin => "litecoin",
+        ChainId::Stellar => "stellar",
+        ChainId::Ripple => "ripple",
+        ChainId::Dogecoin => "dogecoin",
+        ChainId::Tron => "tron",
     }.to_string()
 }
 
@@ -99,6 +109,11 @@ pub async fn execute_send_for_network(chain: &str, to: &str, amount: &str, passw
             }
         }
         "bitcoin" => bitcoin::send(&seed, to, amount).await,
+        "litecoin" => litecoin::send(&seed, to, amount).await,
+        "stellar" => stellar::send(&seed, to, amount, rpc_url, testnet).await,
+        "ripple" => ripple::send(&seed, to, amount, rpc_url).await,
+        "dogecoin" => dogecoin::send(&seed, to, amount).await,
+        "tron" => tron::send(&seed, to, amount, rpc_url).await,
         _ => Err(format!("Sending not supported for {}", chain)),
     };
     seed.zeroize();
