@@ -76,7 +76,7 @@ pub fn ApprovalsPage() -> impl IntoView {
             .find(|c| crate::rpc::chain_id_str(&c.id) == chain)
             .and_then(|c| c.rpc_urls.first().cloned());
 
-        let rpc_url = match rpc_url {
+        let _rpc_url = match rpc_url {
             Some(u) => u,
             None => {
                 set_error.set(Some(t("approvals.no_rpc")));
@@ -184,7 +184,6 @@ pub fn ApprovalsPage() -> impl IntoView {
                     <div>
                         {list.into_iter().map(|approval| {
                             let token_addr = approval.token_address.clone();
-                            let spender_addr = approval.spender_address.clone();
                             let is_unlimited = approval.allowance == "Unlimited";
                             let token_addr_c = token_addr.clone();
                             let spender_addr_c = approval.spender_address.clone();

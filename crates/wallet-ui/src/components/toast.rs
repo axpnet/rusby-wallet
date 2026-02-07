@@ -4,8 +4,9 @@
 
 use leptos::prelude::*;
 
-/// Toast message type
+/// Toast message type — variants used by ToastContainer for CSS class mapping
 #[derive(Debug, Clone, PartialEq)]
+#[allow(dead_code)]
 pub enum ToastType {
     Success,
     Error,
@@ -16,29 +17,8 @@ pub enum ToastType {
 /// A single toast notification
 #[derive(Debug, Clone)]
 pub struct ToastMessage {
-    pub id: u32,
     pub message: String,
     pub toast_type: ToastType,
-}
-
-static TOAST_COUNTER: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
-
-/// Show a toast notification (adds to context signal)
-pub fn show_toast(set_toasts: WriteSignal<Vec<ToastMessage>>, message: String, toast_type: ToastType) {
-    let id = TOAST_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let msg = ToastMessage { id, message, toast_type };
-
-    set_toasts.update(|toasts| {
-        toasts.push(msg);
-    });
-
-    // Auto-dismiss after 5 seconds
-    let dismiss_id = id;
-    gloo_timers::callback::Timeout::new(5_000, move || {
-        set_toasts.update(|toasts| {
-            toasts.retain(|t| t.id != dismiss_id);
-        });
-    }).forget();
 }
 
 /// Toast container component — renders all active toasts

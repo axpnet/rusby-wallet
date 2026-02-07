@@ -23,3 +23,10 @@ Thumbs.db
 
 # Dev docs (audit interni, analisi, note di sviluppo)
 docs/dev/
+
+# Claude Code instructions (per-developer, non pubblicare)
+CLAUDE.md
+
+# Audit reports interni (non pubblici)
+AUDIT.md
+AUDIT_REPORT_*.md

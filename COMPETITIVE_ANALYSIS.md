@@ -1,207 +1,218 @@
-# Rusby Wallet — Analisi Competitiva
+# Competitive Analysis
 
-**Data**: 5 Febbraio 2026 (aggiornato a v0.7.0)
-**Wallet analizzati**: MetaMask, Rabby, Phantom, Keplr, Rusby Wallet
+**Version**: 0.9.0 (February 2026)
+**Scope**: MetaMask, Rabby, Phantom, Keplr, Rusby Wallet
 
 ---
 
-## 1. Panoramica Comparativa
+## 1. Market Overview
 
-| | **MetaMask** | **Rabby** | **Phantom** | **Keplr** | **Rusby** |
+| | MetaMask | Rabby | Phantom | Keplr | Rusby |
 |---|---|---|---|---|---|
-| **Utenti attivi** | ~30M | ~2M | ~7M | ~1.5M | 0 (pre-launch) |
-| **Chain focus** | EVM | EVM | Solana + EVM + BTC | Cosmos IBC | Multi-chain |
-| **Linguaggio core** | JavaScript | JavaScript | Rust + TypeScript | TypeScript | Rust puro |
-| **Open source** | Sì | Sì | No | Sì | Sì |
-| **Modello revenue** | Swap fee, staking, bridge | Swap fee | Swap fee, staking | Staking fee | Nessuno |
-| **Prima release** | 2016 | 2022 | 2021 | 2020 | 2026 |
+| Active users | ~30M | ~2M | ~7M | ~1.5M | Pre-launch |
+| Chain focus | EVM | EVM | Solana + EVM + BTC | Cosmos IBC | Multi-chain (16) |
+| Core language | JavaScript | JavaScript | Rust + TypeScript | TypeScript | Pure Rust |
+| Open source | Yes | Yes | No | Yes | Yes (GPL-3.0) |
+| Revenue model | Swap fees, staking | Swap fees | Swap fees, staking | Staking fees | None |
+| First release | 2016 | 2022 | 2021 | 2020 | 2026 |
+| Codebase size | ~500k+ LOC | ~200k+ LOC | Undisclosed | ~100k+ LOC | ~21k LOC |
 
 ---
 
-## 2. Confronto Feature Dettagliato
+## 2. Feature Comparison
 
-### 2.1 Gestione Account e Seed
-
-| Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
-|---------|----------|-------|---------|-------|-------|
-| Creazione wallet | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Import mnemonic | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Import private key | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Multi-account (HD) | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Multi-wallet | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Hardware wallet | ✅ Ledger+Trezor | ✅ Ledger+Trezor+GridPlus | ✅ Ledger | ✅ Ledger | ❌ |
-| Watch-only address | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Social recovery | ❌ | ❌ | ❌ | ❌ | ❌ |
-
-### 2.2 Chain e Network
+### 2.1 Account and Key Management
 
 | Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
 |---------|----------|-------|---------|-------|-------|
-| Chain supportate | ~20 EVM | ~100+ EVM | Solana+EVM+BTC+Base | 50+ Cosmos | 11 (EVM×6+SOL+TON+BTC+ATOM+OSMO) |
-| Custom network | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Testnet toggle | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Auto-detect chain | ❌ | ✅ | ✅ | N/A | ❌ |
-| EVM L2 native | ✅ | ✅ | ✅ | ❌ | ✅ |
-| Non-EVM chain | ❌ (solo Snaps) | ❌ | ✅ (SOL+BTC) | ✅ (Cosmos) | ✅ (SOL+TON+BTC+Cosmos) |
+| Wallet creation (BIP-39) | Yes | Yes | Yes | Yes | Yes |
+| Mnemonic import | Yes | Yes | Yes | Yes | Yes |
+| Private key import | Yes | Yes | Yes | Yes | No |
+| Multi-account (HD paths) | Yes | Yes | Yes | Yes | No |
+| Multi-wallet | Yes | Yes | Yes | Yes | Yes |
+| Hardware wallet (Ledger/Trezor) | Yes | Yes (+ GridPlus) | Yes (Ledger) | Yes (Ledger) | Planned (v1.0) |
+| Watch-only address | Yes | Yes | No | No | No |
+| Social recovery | No | No | No | No | Planned (v2.0) |
 
-**Vantaggio Rusby**: Vero supporto multi-chain nativo (EVM + Solana + TON + Cosmos) — nessun altro wallet copre tutte queste famiglie.
-
-### 2.3 Token e Asset
-
-| Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
-|---------|----------|-------|---------|-------|-------|
-| Token nativi (balance) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| ERC-20 | ✅ | ✅ auto-detect | ✅ | N/A | ✅ (v0.3.0) |
-| SPL token | ❌ | ❌ | ✅ auto-detect | ❌ | ✅ display (v0.3.0) |
-| CW-20 (Cosmos) | ❌ | ❌ | ❌ | ✅ | ✅ (v0.7.0) |
-| NFT (ERC-721/1155) | ✅ | ✅ | ✅ | ❌ | ✅ Alchemy API (v0.7.0) |
-| NFT (Metaplex) | ❌ | ❌ | ✅ | ❌ | ✅ Helius DAS (v0.7.0) |
-| Token auto-discovery | ❌ (manual add) | ✅ | ✅ | ✅ | ❌ (lista predefinita) |
-| Token price feed | ✅ CoinGecko | ✅ | ✅ | ✅ | ✅ CoinGecko (v0.3.0) |
-| Portfolio totale ($) | ✅ | ✅ | ✅ | ❌ | ✅ (v0.3.0) |
-
-**Progresso Rusby v0.7.0**: Token completi su tutte le chain (ERC-20, SPL, CW-20, Jetton). NFT display per EVM e Solana via Alchemy/Helius API.
-
-### 2.4 Transazioni
+### 2.2 Blockchain Network Support
 
 | Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
 |---------|----------|-------|---------|-------|-------|
-| Send nativo | ✅ | ✅ | ✅ | ✅ | ✅ (incl. BTC) |
-| Send token | ✅ | ✅ | ✅ | ✅ | ✅ ERC-20 (v0.3.0) |
-| Cronologia TX | ✅ | ✅ | ✅ | ✅ | ✅ basica (v0.3.0) |
-| Gas estimation | ✅ | ✅ avanzato | ✅ | ✅ | ✅ (base) |
-| Speed up/cancel TX | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Batch TX | ❌ | ✅ | ❌ | ❌ | ❌ |
-| EIP-1559 (Type 2) | ✅ | ✅ | ✅ | N/A | ✅ |
-| TX simulation | ❌ | ✅ | ✅ | ❌ | ✅ (v0.6.0) |
+| Supported chains | ~20 EVM | ~100+ EVM | SOL + EVM + BTC + Base | 50+ Cosmos | 16 (6 EVM + 10 non-EVM) |
+| Custom network (RPC) | Yes | Yes | No | Yes | Planned |
+| Testnet toggle | Yes | No | Yes | Yes | Yes (v0.7.0) |
+| Auto-detect chain | No | Yes | Yes | N/A | No |
+| Native EVM L2 | Yes | Yes | Yes | No | Yes |
+| Non-EVM native | No (Snaps only) | No | Yes (SOL+BTC) | Yes (Cosmos) | Yes (SOL+TON+BTC+Cosmos+LTC+XLM+XRP+DOGE+TRX) |
 
-**Progresso Rusby v0.6.0**: TX simulation pre-firma, phishing detection, scam address warning e token approval management colmano il gap sicurezza con Rabby.
+**Rusby differentiator**: Native multi-chain support spanning EVM, Solana, TON, Cosmos, Bitcoin, Litecoin, Stellar, Ripple, Dogecoin, and TRON from a single seed phrase. No other wallet provides native derivation and signing across all these chain families without plugins or bridges.
 
-### 2.5 Integrazione dApp
+### 2.3 Token and Asset Support
 
 | Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
 |---------|----------|-------|---------|-------|-------|
-| Injected provider | ✅ EIP-1193 | ✅ EIP-1193+6963 | ✅ (custom) | ✅ (custom) | ✅ EIP-1193+6963 (v0.4.0) |
-| WalletConnect v2 | ✅ | ✅ | ✅ | ✅ | ✅ (v0.5.0) |
-| dApp permission management | ✅ | ✅ avanzato | ✅ | ✅ | ✅ basica (v0.4.0) |
-| Sign message (EIP-191/712) | ✅ | ✅ | ✅ | N/A | ✅ (v0.4.0) |
-| Background service worker | ✅ | ✅ | ✅ | ✅ | ✅ (v0.4.0) |
-| Snaps/plugin system | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Native token balance | Yes | Yes | Yes | Yes | Yes |
+| ERC-20 | Yes | Yes (auto-detect) | Yes | N/A | Yes |
+| SPL (Solana) | No | No | Yes (auto-detect) | No | Yes |
+| CW-20 (Cosmos) | No | No | No | Yes | Yes |
+| Jetton (TON) | No | No | No | No | Yes |
+| NFT (ERC-721/1155) | Yes | Yes | Yes | No | Yes (Alchemy API) |
+| NFT (Metaplex/DAS) | No | No | Yes | No | Yes (Helius API) |
+| Token auto-discovery | No (manual) | Yes | Yes | Yes | No (predefined list) |
+| Price feed (USD) | Yes | Yes | Yes | Yes | Yes (CoinGecko) |
+| Portfolio valuation | Yes | Yes | Yes | No | Yes |
 
-**Progresso Rusby v0.5.0**: Injected provider EIP-1193/6963, firma EIP-191/712, background SW, gestione permessi dApp, WalletConnect v2 con CAIP-2 mapping. Connettività dApp completa.
-
-### 2.6 Sicurezza
-
-| Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
-|---------|----------|-------|---------|-------|-------|
-| Encryption standard | AES-GCM | AES-GCM | Non divulgato | AES-GCM | AES-256-GCM |
-| KDF | PBKDF2 | PBKDF2 | Non divulgato | scrypt | PBKDF2 100k |
-| Auto-lock | ✅ | ✅ | ✅ | ✅ | ✅ (v0.3.0) |
-| Phishing detection | ✅ | ✅ avanzato | ✅ | ❌ | ✅ blocklist+heuristic (v0.6.0) |
-| TX simulation pre-firma | ❌ | ✅ | ✅ | ❌ | ✅ eth_call (v0.6.0) |
-| Token approval check | ❌ | ✅ (revoke.cash) | ❌ | N/A | ✅ revoke UI (v0.6.0) |
-| Scam address warning | ✅ | ✅ | ✅ | ❌ | ✅ (v0.6.0) |
-| Open source | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Core in Rust/WASM | ❌ (JS) | ❌ (JS) | ✅ (parziale) | ❌ (TS) | ✅ (100%) |
-
-**Vantaggio Rusby**: Core 100% Rust è un vantaggio reale — nessuna classe di bug tipiche di JavaScript (prototype pollution, type coercion, timing attacks).
-
-### 2.7 UX e Piattaforme
+### 2.4 Transaction Capabilities
 
 | Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
 |---------|----------|-------|---------|-------|-------|
-| Chrome extension | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Firefox | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Mobile app | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Desktop app | ❌ | ❌ | ❌ | ❌ | ❌ (Tauri planned) |
-| Swap integrato | ✅ | ✅ (multi-DEX) | ✅ | ❌ | ✅ 0x API (v0.7.0) |
-| Bridge integrato | ✅ | ✅ | ✅ | ✅ (IBC) | ❌ |
-| Staking | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Fiat on-ramp | ✅ | ❌ | ✅ | ❌ | ❌ |
-| Dark mode | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Popup + fullpage | ✅ | ✅ | ✅ | ✅ | ✅ |
-| i18n/Lingue | ✅ ~30 | ✅ ~10 | ✅ ~20 | ✅ ~10 | ✅ 9 (v0.7.0) |
+| Native send | Yes | Yes | Yes | Yes | Yes (all 16 chains) |
+| Token send | Yes | Yes | Yes | Yes | Yes (ERC-20, CW-20, Jetton) |
+| Transaction history | Yes | Yes | Yes | Yes | Yes |
+| Gas estimation | Yes | Yes (advanced) | Yes | Yes | Yes |
+| Speed up / cancel TX | Yes | Yes | No | No | No |
+| Batch transactions | No | Yes | No | No | No |
+| EIP-1559 Type 2 | Yes | Yes | Yes | N/A | Yes |
+| Pre-signing simulation | No | Yes | Yes | No | Yes (eth_call) |
+| UTXO management (BTC) | N/A | N/A | Yes | N/A | Yes (BTC, LTC, DOGE) |
 
-### 2.8 DeFi e Servizi Integrati
+### 2.5 dApp Integration
 
 | Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
 |---------|----------|-------|---------|-------|-------|
-| DEX aggregator | ✅ (swap) | ✅ (multi-source) | ✅ (Jupiter) | ❌ | ✅ (0x API v2) |
-| Cross-chain bridge | ✅ | ✅ | ✅ | ✅ (IBC) | ❌ |
-| Staking nativo | ✅ (ETH) | ❌ | ✅ (SOL) | ✅ (ATOM+) | ❌ |
-| Yield aggregator | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Gas sponsorship | ❌ | ✅ | ❌ | ❌ | ❌ |
+| EIP-1193 provider | Yes | Yes | Yes (custom) | Yes (custom) | Yes |
+| EIP-6963 discovery | Yes | Yes | No | No | Yes |
+| WalletConnect v2 | Yes | Yes | Yes | Yes | Yes |
+| Permission management | Yes | Yes (advanced) | Yes | Yes | Yes |
+| EIP-191 (personal_sign) | Yes | Yes | Yes | N/A | Yes |
+| EIP-712 (typed data) | Yes | Yes | Yes | N/A | Yes |
+| Plugin / Snap system | Yes | No | No | No | No |
+
+### 2.6 Security
+
+| Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
+|---------|----------|-------|---------|-------|-------|
+| Encryption cipher | AES-GCM | AES-GCM | Undisclosed | AES-GCM | AES-256-GCM |
+| KDF algorithm | PBKDF2 | PBKDF2 | Undisclosed | scrypt | PBKDF2 (600k iter.) |
+| Auto-lock | Yes | Yes | Yes | Yes | Yes |
+| Phishing detection | Yes | Yes (advanced) | Yes | No | Yes (blocklist + heuristic) |
+| TX simulation | No | Yes | Yes | No | Yes |
+| Token approval management | No | Yes (revoke.cash) | No | N/A | Yes |
+| Scam address warning | Yes | Yes | Yes | No | Yes |
+| Core in Rust/WASM | No (JS) | No (JS) | Partial | No (TS) | Yes (100%) |
+| Key zeroization | Unknown | Unknown | Unknown | Unknown | Yes (zeroize crate) |
+| Overflow-safe parsing | Unknown | Unknown | Unknown | Unknown | Yes (checked arithmetic) |
+| Debug redaction | Unknown | Unknown | Unknown | Unknown | Yes |
+
+**Rusby differentiator**: 100% Rust cryptographic core eliminates entire classes of vulnerabilities inherent to JavaScript-based wallets, including prototype pollution, type coercion exploits, and timing side-channels from dynamic dispatch. All sensitive memory is explicitly zeroized after use, and numeric parsing uses checked arithmetic to prevent overflow attacks.
+
+### 2.7 User Experience
+
+| Feature | MetaMask | Rabby | Phantom | Keplr | Rusby |
+|---------|----------|-------|---------|-------|-------|
+| Chrome extension | Yes | Yes | Yes | Yes | Yes |
+| Firefox extension | Yes | Yes | No | Yes | Planned |
+| Mobile application | Yes | No | Yes | Yes | Planned |
+| Desktop application | No | No | No | No | Planned (Tauri) |
+| DEX swap | Yes | Yes (multi-DEX) | Yes | No | Yes (0x API) |
+| Cross-chain bridge | Yes | Yes | Yes | Yes (IBC) | No |
+| Staking | Yes | No | Yes | Yes | No |
+| Fiat on-ramp | Yes | No | Yes | No | No |
+| Theme system | Yes (limited) | Yes | Yes | Yes | Yes (7 themes + custom) |
+| Popup + fullpage layout | Yes | Yes | Yes | Yes | Yes |
+| Internationalization | ~30 languages | ~10 languages | ~20 languages | ~10 languages | 9 languages |
 
 ---
 
-## 3. Analisi SWOT — Rusby Wallet
+## 3. SWOT Analysis
 
-### Strengths (Punti di forza)
-- **Rust puro**: Sicurezza a livello di linguaggio, nessun overhead JS, performance prevedibili
-- **Multi-chain nativo**: EVM + Solana + TON + Cosmos dallo stesso seed — unico nel mercato
-- **Codebase leggero**: ~10.000 LOC totali vs ~500k+ di MetaMask — facile da auditare e mantenere
-- **Crittografia corretta**: AES-256-GCM + PBKDF2 con parametri adeguati, dipendenze auditate
-- **Open source con licenza GPL-3.0**: Trasparenza totale
-- **Architettura moderna**: Leptos 0.7 con fine-grained reactivity, Manifest v3
+### Strengths
 
-### Weaknesses (Debolezze)
-- **Zero utenti**: Nessuna traction, nessuna community
-- **Feature gap**: Mancano hardware wallet, staking, bridge
-- **Team**: Progetto singolo (?) vs team di 50-200+ dei competitor
-- **Nessun modello di revenue**: Sostenibilità a lungo termine incerta
-- **Nessun audit di sicurezza esterno**: Fondamentale per un wallet
-- **TON come chain unica**: Nessun competitor mainstream supporta TON — potrebbe essere un vantaggio o un rischio
+- **Pure Rust architecture**: Memory safety guarantees at the language level eliminate entire vulnerability classes common in JavaScript wallets (prototype pollution, type coercion, reference sharing). The Rust ownership model prevents use-after-free, double-free, and buffer overflow conditions by construction.
+- **Native multi-chain breadth**: 16 blockchain networks with native key derivation and transaction signing from a single BIP-39 seed. No other open-source wallet supports EVM, Solana, TON, Cosmos, Bitcoin, Litecoin, Stellar, Ripple, Dogecoin, and TRON natively.
+- **Compact, auditable codebase**: ~21,000 lines of code total versus ~500,000+ for MetaMask. The entire cryptographic core can be reviewed by a single auditor in a reasonable timeframe.
+- **Transparent cryptography**: All encryption parameters (AES-256-GCM, PBKDF2 600k iterations, 32-byte salt) are documented and based on NIST and OWASP recommendations. Pure Rust implementations with no C/C++ FFI bindings.
+- **Modern extension architecture**: Chrome Manifest v3 with strict Content Security Policy, service worker, and sandboxed WASM execution.
+- **Open source (GPL-3.0)**: Full transparency with copyleft protection.
 
-### Opportunities (Opportunità)
-- **Segmento "security-first"**: Nessun wallet compete sul "100% Rust, zero JavaScript"
-- **TON + multi-chain**: L'ecosistema TON cresce rapidamente, pochi wallet lo supportano nativamente
-- **Fatica da MetaMask**: Molti utenti cercano alternative più sicure e veloci
-- **Tauri desktop**: Nessun wallet mainstream ha un client desktop nativo
-- **Developer audience**: Rust developer che vogliono un wallet auditabile
-- **Account abstraction (EIP-4337)**: Nessun competitor lo ha integrato nativamente — first mover advantage possibile
+### Weaknesses
 
-### Threats (Minacce)
-- **MetaMask Snaps**: MetaMask sta diventando multi-chain tramite plugin — erode il vantaggio di Rusby
-- **Phantom multi-chain**: Phantom si è espanso da Solana a EVM+BTC e continua ad aggiungere chain
-- **Wallet integrati nei browser**: Brave Wallet, Opera Wallet riducono la necessità di estensioni
-- **Regolamentazione**: Requisiti MiCA/Travel Rule potrebbero richiedere KYC — complicazione enorme
-- **Smart wallet (Coinbase, Safe)**: Account abstraction con social recovery è il futuro — l'HD wallet tradizionale potrebbe diventare obsoleto
+- **No established user base**: Pre-launch status with zero production users and no community.
+- **Feature gaps**: Hardware wallet support, staking, cross-chain bridging, and fiat on-ramp are absent.
+- **No formal third-party audit**: Internal and AI-assisted audits have been conducted, but no engagement with a recognized security firm (e.g., Trail of Bits, OpenZeppelin, Halborn).
+- **Token discovery**: Relies on predefined token lists rather than automatic on-chain discovery.
+- **Single-developer origin**: Resource constraints compared to funded teams of 50-200+ engineers at competing projects.
 
----
+### Opportunities
 
-## 4. Posizionamento Strategico
+- **Security-conscious user segment**: Growing demand for wallets with verifiable security properties, particularly in the aftermath of high-profile wallet exploits. "100% Rust, zero JavaScript" is a defensible differentiator.
+- **TON ecosystem growth**: The TON blockchain ecosystem is expanding rapidly with few native wallet options. Rusby is among the first open-source wallets to support TON alongside EVM, Solana, and Cosmos.
+- **Developer-oriented positioning**: Rust developers increasingly seek auditable wallet implementations they can verify independently.
+- **Desktop application gap**: No mainstream wallet offers a native desktop client. Tauri-based deployment would be first-to-market.
+- **Account abstraction (EIP-4337)**: No competitor has implemented native account abstraction. Early adoption could establish first-mover advantage in the next generation of wallet UX.
 
-### Dove NON competere
-- **Volume utenti mainstream**: MetaMask e Phantom hanno vantaggi di rete insormontabili
-- **Ecosistema dApp**: MetaMask ha l'effetto network — è lo "standard de facto"
-- **Mobile**: Richiede investimento enorme, Phantom e MetaMask dominano
+### Threats
 
-### Dove competere (nicchia difendibile)
-
-#### Posizionamento proposto: **"Il wallet più sicuro per utenti multi-chain"**
-
-1. **Security-first narrative**: "100% Rust, zero JavaScript, completamente auditabile"
-2. **Multi-chain nativo reale**: Non Snaps, non bridge — derivazione nativa per ogni chain
-3. **Trasparenza**: Open source, codebase compatto, audit pubblici
-4. **Developer-friendly**: Il wallet che i Rust developer costruiscono per sé stessi
-5. **TON first-mover**: Primo wallet open source con TON + EVM + Solana + Cosmos nativo
+- **MetaMask Snaps ecosystem**: MetaMask's plugin architecture is expanding multi-chain support, potentially neutralizing Rusby's chain breadth advantage.
+- **Phantom expansion**: Phantom has expanded from Solana to EVM and Bitcoin, with further chain additions planned.
+- **Browser-integrated wallets**: Brave Wallet and Opera Wallet reduce the need for extension-based wallets entirely.
+- **Regulatory pressure**: MiCA and Travel Rule requirements may impose KYC obligations on self-custody wallets.
+- **Smart wallets**: Account abstraction wallets (Coinbase Smart Wallet, Safe) with social recovery may render traditional HD wallets less attractive to mainstream users.
+- **AI-assisted attacks**: Increasingly sophisticated phishing and social engineering attacks targeting wallet users require continuous security investment.
 
 ---
 
-## 5. Roadmap
+## 4. Strategic Positioning
 
-La roadmap dettagliata è nel file [ROADMAP.md](ROADMAP.md).
+### Segments to Avoid
+
+- **Mass consumer market**: MetaMask (~30M users) and Phantom (~7M users) have network effects and brand recognition that are impractical to challenge directly.
+- **dApp ecosystem integration**: MetaMask is the de facto standard for EVM dApp connectivity. Competing on ecosystem integration is not viable at this stage.
+- **Mobile-first strategy**: Mobile wallet development requires substantial investment and competes with well-funded incumbents.
+
+### Target Positioning: Security-First Multi-Chain Wallet
+
+Rusby Wallet is positioned for users who prioritize:
+
+1. **Verifiable security**: Users who want to inspect the cryptographic implementation and trust the wallet based on code review rather than brand reputation.
+2. **Multi-chain consolidation**: Users managing assets across EVM, Solana, TON, Cosmos, and UTXO chains who want a single, unified interface without chain-specific wallets.
+3. **Technical transparency**: Developers and technically literate users who value open-source, auditable code with documented security properties.
+4. **Minimal attack surface**: Users concerned about JavaScript-based wallet vulnerabilities who seek a Rust/WASM alternative.
+
+### Competitive Moat
+
+The defensible advantage of Rusby Wallet is architectural: a pure Rust cryptographic core compiled to WebAssembly provides security properties that cannot be retrofitted onto a JavaScript codebase. This includes:
+
+- Compile-time memory safety (ownership, borrowing, lifetime checking)
+- Explicit error handling (no uncaught exceptions, no implicit type coercion)
+- Deterministic resource management (no garbage collector non-determinism)
+- Static type system preventing entire classes of runtime errors
+
+In an industry where wallets manage billions of dollars in aggregate, these properties are not merely academic advantages; they represent a fundamental reduction in vulnerability surface area.
 
 ---
 
-## 6. Conclusione
+## 5. Development Trajectory
 
-Rusby Wallet ha un posizionamento unico: **l'unico wallet open source con core 100% Rust che supporta nativamente EVM, Solana, TON e Cosmos**. Nessun competitor offre questa combinazione.
+| Version | Status | Milestone |
+|---------|--------|-----------|
+| 0.1.0 | Released | Core wallet (BIP-39, HD derivation, AES-256-GCM encryption) |
+| 0.2.0 | Released | Balance queries, transaction signing, QR codes |
+| 0.3.0 | Released | Bitcoin P2WPKH, ERC-20/SPL tokens, portfolio USD, auto-lock |
+| 0.4.0 | Released | EIP-1193/6963 provider, EIP-191/712 signing, Chrome extension architecture |
+| 0.5.0 | Released | WalletConnect v2, CAIP-2 mapping |
+| 0.6.0 | Released | TX simulation, phishing detection, scam addresses, token approvals |
+| 0.7.0 | Released | i18n (9 languages), NFT, swap, CW-20, Jetton, testnet toggle, backup |
+| 0.8.0 | Released | Theme system (7 + custom), external security review, WASM OOM fix |
+| 0.9.0 | Released | Litecoin, Stellar, Ripple, Dogecoin, TRON (16 chains total) |
+| 1.0.0 | Planned | Tauri desktop, hardware wallet integration, Argon2id migration |
 
-Il gap con i big è significativo in termini di feature, ma il vantaggio tecnico (sicurezza a livello di linguaggio, codebase auditabile, performance WASM) è reale e difendibile.
+---
 
-La strategia vincente non è replicare MetaMask, ma costruire il wallet che gli utenti consapevoli della sicurezza scelgono quando vogliono un'alternativa trustless e trasparente. Il percorso è: prima diventare **usabile** (v0.3), poi **connesso** (v0.4-v0.5), poi **sicuro** (v0.6), poi **DeFi-ready** (v0.7), e infine **completo** (v1.0).
+## 6. Conclusion
 
-Con v0.7.0, Rusby ha colmato i gap su swap e NFT: lo swap integrato via 0x API e il display NFT per EVM (Alchemy) e Solana (Helius DAS) avvicinano significativamente l'esperienza utente a quella dei competitor principali. Il supporto token è ora completo su tutte le chain (ERC-20, SPL, CW-20, Jetton) e l'interfaccia è disponibile in 9 lingue. Le debolezze rimanenti — hardware wallet, staking e bridge — sono le prossime priorità.
+Rusby Wallet occupies a unique position in the cryptocurrency wallet landscape: the only open-source wallet with a 100% Rust cryptographic core that provides native key derivation and transaction signing for 16 blockchain networks spanning 4 curve families (secp256k1 BIP-32, secp256k1 BIP-44, Ed25519 SLIP-10, and chain-specific encodings).
 
-Il vero moat di Rusby è Rust: meno superficie di attacco, meno classi di bug, e un codebase che un singolo auditor può leggere in un giorno. In un mondo dove i wallet gestiscono miliardi di dollari, questo conta.
+The feature gap with established competitors (hardware wallet support, staking, bridging, mobile applications) is significant but addressable. The architectural advantage -- compile-time memory safety, explicit resource management, and a compact auditable codebase -- is structural and cannot be replicated by competitors without fundamental rewrites.
+
+The path to market viability requires three milestones: a formal third-party security audit to establish credibility, hardware wallet integration to meet institutional requirements, and a Tauri desktop application to differentiate from browser-only competitors. With these elements in place, Rusby can credibly position itself as the wallet of choice for security-conscious users managing assets across multiple blockchain ecosystems.

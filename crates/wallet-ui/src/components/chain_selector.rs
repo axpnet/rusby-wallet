@@ -16,14 +16,13 @@ pub fn ChainSelector() -> impl IntoView {
     view! {
         <div class="chain-list">
             {chains.into_iter().map(|chain| {
-                let chain_id = chain.id.clone();
-                let chain_id_for_active = chain_id.clone();
-                let chain_id_for_select = chain_id.clone();
-                let chain_id_for_balance = chain_id.clone();
+                let chain_id_for_active = chain.id.clone();
+                let chain_id_for_select = chain.id.clone();
+                let chain_id_for_balance = chain.id.clone();
                 let name = chain.name.clone();
                 let ticker = chain.ticker.clone();
                 let ticker_balance = ticker.clone();
-                let icon = chain.icon.clone();
+                let icon_path = chain.icon_path;
 
                 let is_active = move || wallet_state.with(|s| s.active_chain == chain_id_for_active);
 
@@ -35,7 +34,7 @@ pub fn ChainSelector() -> impl IntoView {
                 };
 
                 let balance = {
-                    let cid = chain_id_for_balance.clone();
+                    let cid = chain_id_for_balance;
                     move || {
                         wallet_state.with(|s| {
                             s.balances
@@ -52,7 +51,9 @@ pub fn ChainSelector() -> impl IntoView {
                         class:active=is_active
                         on:click=select
                     >
-                        <div class="chain-icon">{icon}</div>
+                        <div class="chain-icon">
+                            <img src=icon_path alt=name.clone() class="chain-icon-img" />
+                        </div>
                         <div class="chain-info">
                             <div class="chain-name">{name}</div>
                             <div class="chain-ticker">{ticker}</div>

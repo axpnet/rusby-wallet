@@ -82,7 +82,12 @@ pub struct ChainDisplay {
     pub id: String,
     pub name: String,
     pub ticker: String,
-    pub icon: String,
+    pub icon_path: String,
+}
+
+/// Get the icon image path for a given chain id
+fn chain_icon_path(chain_id: &str) -> String {
+    format!("chain-icons/{}.png", chain_id)
 }
 
 pub fn chain_list() -> Vec<ChainDisplay> {
@@ -94,29 +99,29 @@ pub fn chain_list_for(testnet: bool) -> Vec<ChainDisplay> {
     use wallet_core::chains::ChainId;
     let chains = get_chains(testnet);
     chains.iter().map(|c| {
-        let (id, icon) = match &c.id {
-            ChainId::Ethereum => ("ethereum", "E"),
-            ChainId::Polygon => ("polygon", "P"),
-            ChainId::Bsc => ("bsc", "B"),
-            ChainId::Optimism => ("optimism", "O"),
-            ChainId::Base => ("base", "Ba"),
-            ChainId::Arbitrum => ("arbitrum", "A"),
-            ChainId::Solana => ("solana", "S"),
-            ChainId::Ton => ("ton", "T"),
-            ChainId::CosmosHub => ("cosmos", "C"),
-            ChainId::Osmosis => ("osmosis", "Os"),
-            ChainId::Bitcoin => ("bitcoin", "₿"),
-            ChainId::Litecoin => ("litecoin", "Ł"),
-            ChainId::Stellar => ("stellar", "✦"),
-            ChainId::Ripple => ("ripple", "X"),
-            ChainId::Dogecoin => ("dogecoin", "D"),
-            ChainId::Tron => ("tron", "T"),
+        let id = match &c.id {
+            ChainId::Ethereum => "ethereum",
+            ChainId::Polygon => "polygon",
+            ChainId::Bsc => "bsc",
+            ChainId::Optimism => "optimism",
+            ChainId::Base => "base",
+            ChainId::Arbitrum => "arbitrum",
+            ChainId::Solana => "solana",
+            ChainId::Ton => "ton",
+            ChainId::CosmosHub => "cosmos",
+            ChainId::Osmosis => "osmosis",
+            ChainId::Bitcoin => "bitcoin",
+            ChainId::Litecoin => "litecoin",
+            ChainId::Stellar => "stellar",
+            ChainId::Ripple => "ripple",
+            ChainId::Dogecoin => "dogecoin",
+            ChainId::Tron => "tron",
         };
         ChainDisplay {
             id: id.into(),
             name: c.name.clone(),
             ticker: c.ticker.clone(),
-            icon: icon.into(),
+            icon_path: chain_icon_path(id),
         }
     }).collect()
 }
@@ -182,20 +187,6 @@ pub fn load_from_storage(key: &str) -> Option<String> {
     storage.get_item(key).ok()?
 }
 
-pub fn remove_from_storage(key: &str) {
-    if let Some(window) = web_sys::window() {
-        if let Ok(Some(storage)) = window.local_storage() {
-            let _ = storage.remove_item(key);
-        }
-    }
-    if has_chrome_storage() {
-        let key = key.to_string();
-        wasm_bindgen_futures::spawn_local(async move {
-            chrome_storage_remove(&key).await;
-        });
-    }
-}
-
 /// Sync chrome.storage.local → localStorage on extension startup
 pub fn sync_chrome_storage_to_local() {
     if !has_chrome_storage() {
@@ -250,30 +241,19 @@ async fn chrome_storage_set(key: &str, value: &str) {
     }
 }
 
-async fn chrome_storage_remove(key: &str) {
-    let window = match web_sys::window() {
-        Some(w) => w,
-        None => return,
-    };
-    let chrome = match js_sys::Reflect::get(&window, &"chrome".into()) {
-        Ok(c) if !c.is_undefined() => c,
-        _ => return,
-    };
-    let storage = match js_sys::Reflect::get(&chrome, &"storage".into()) {
-        Ok(s) if !s.is_undefined() => s,
-        _ => return,
-    };
-    let local = match js_sys::Reflect::get(&storage, &"local".into()) {
-        Ok(l) if !l.is_undefined() => l,
-        _ => return,
-    };
-    if let Ok(remove_fn) = js_sys::Reflect::get(&local, &"remove".into()) {
-        if let Some(remove_fn) = remove_fn.dyn_ref::<js_sys::Function>() {
-            if let Ok(promise) = remove_fn.call1(&local, &key.into()) {
-                let _ = wasm_bindgen_futures::JsFuture::from(js_sys::Promise::from(promise)).await;
-            }
-        }
-    }
+async fn chrome_storage_get_all() -> Option<js_sys::Object> {
+    let window = web_sys::window()?;
+    let chrome = js_sys::Reflect::get(&window, &"chrome".into()).ok()?;
+    if chrome.is_undefined() { return None; }
+    let storage = js_sys::Reflect::get(&chrome, &"storage".into()).ok()?;
+    if storage.is_undefined() { return None; }
+    let local = js_sys::Reflect::get(&storage, &"local".into()).ok()?;
+    if local.is_undefined() { return None; }
+    let get_fn = js_sys::Reflect::get(&local, &"get".into()).ok()?;
+    let get_fn = get_fn.dyn_ref::<js_sys::Function>()?;
+    let promise = get_fn.call1(&local, &wasm_bindgen::JsValue::NULL).ok()?;
+    let result = wasm_bindgen_futures::JsFuture::from(js_sys::Promise::from(promise)).await.ok()?;
+    result.dyn_into::<js_sys::Object>().ok()
 }
 
 /// dApp request pending approval
@@ -333,19 +313,4 @@ pub fn get_url_param(key: &str) -> Option<String> {
     let url = web_sys::Url::new(&href).ok()?;
     let params = url.search_params();
     params.get(key)
-}
-
-async fn chrome_storage_get_all() -> Option<js_sys::Object> {
-    let window = web_sys::window()?;
-    let chrome = js_sys::Reflect::get(&window, &"chrome".into()).ok()?;
-    if chrome.is_undefined() { return None; }
-    let storage = js_sys::Reflect::get(&chrome, &"storage".into()).ok()?;
-    if storage.is_undefined() { return None; }
-    let local = js_sys::Reflect::get(&storage, &"local".into()).ok()?;
-    if local.is_undefined() { return None; }
-    let get_fn = js_sys::Reflect::get(&local, &"get".into()).ok()?;
-    let get_fn = get_fn.dyn_ref::<js_sys::Function>()?;
-    let promise = get_fn.call1(&local, &wasm_bindgen::JsValue::NULL).ok()?;
-    let result = wasm_bindgen_futures::JsFuture::from(js_sys::Promise::from(promise)).await.ok()?;
-    result.dyn_into::<js_sys::Object>().ok()
 }

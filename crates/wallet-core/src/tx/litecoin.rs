@@ -6,9 +6,6 @@
 // Litecoin uses the same BIP-143 SegWit format as Bitcoin.
 // This module re-exports Bitcoin TX types and adds Litecoin-specific helpers.
 
-use super::SignedTransaction;
-use crate::chains::ChainId;
-
 // Re-export Bitcoin TX types (identical format for Litecoin)
 pub use super::bitcoin::{BitcoinTransaction, Utxo, TxOutput, p2wpkh_script};
 
@@ -20,6 +17,7 @@ pub fn parse_ltc_to_litoshi(amount: &str) -> Result<u64, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::chains::ChainId;
 
     #[test]
     fn test_parse_ltc_to_litoshi() {

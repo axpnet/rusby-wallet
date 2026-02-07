@@ -22,7 +22,6 @@ use crate::pages::address_book::AddressBookPage;
 use crate::pages::nft::NftPage;
 use crate::pages::swap::SwapPage;
 use crate::components::navbar::BottomNav;
-use crate::components::sidebar::Sidebar;
 use crate::components::top_nav::TopNav;
 use crate::components::chain_sidebar::ChainSidebar;
 use crate::components::toast::{ToastContainer, ToastMessage};
@@ -34,7 +33,7 @@ pub fn App() -> impl IntoView {
 
     // Detect if running as extension popup or full-page
     let is_popup = is_extension_popup();
-    let (fullpage, set_fullpage) = signal(!is_popup);
+    let (fullpage, _set_fullpage) = signal(!is_popup);
 
     // Global signals
     let (page, set_page) = signal({

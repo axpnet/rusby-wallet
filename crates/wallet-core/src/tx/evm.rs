@@ -198,24 +198,6 @@ fn rlp_wrap_list_payload(payload: &[u8]) -> Vec<u8> {
     }
 }
 
-fn rlp_encode_list(items: &[Vec<u8>]) -> Vec<u8> {
-    let mut payload = Vec::new();
-    for item in items {
-        payload.extend_from_slice(&rlp_encode_bytes(item));
-    }
-    if payload.len() <= 55 {
-        let mut result = vec![0xc0 + payload.len() as u8];
-        result.extend_from_slice(&payload);
-        result
-    } else {
-        let len_bytes = rlp_encode_u64(payload.len() as u64);
-        let mut result = vec![0xf7 + len_bytes.len() as u8];
-        result.extend_from_slice(&len_bytes);
-        result.extend_from_slice(&payload);
-        result
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

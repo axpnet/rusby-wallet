@@ -30,8 +30,8 @@ pub fn Dashboard() -> impl IntoView {
         let chains = chain_list();
         chains.into_iter()
             .find(|c| c.id == chain)
-            .map(|c| (c.name, c.ticker))
-            .unwrap_or(("Unknown".into(), "???".into()))
+            .map(|c| (c.name, c.ticker, c.icon_path))
+            .unwrap_or(("Unknown".into(), "???".into(), String::new()))
     };
 
     // Fetch balance when chain or address changes
@@ -203,7 +203,14 @@ pub fn Dashboard() -> impl IntoView {
         <div>
             // Balance hero
             <div class="balance-hero">
-                <p class="text-sm text-muted">{move || wallet_state.with(|s| s.wallet_name.clone())}</p>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px;">
+                    <img
+                        src=move || active_chain_info().2
+                        alt=""
+                        style="width: 24px; height: 24px; border-radius: 50%;"
+                    />
+                    <p class="text-sm text-muted" style="margin: 0;">{move || wallet_state.with(|s| s.wallet_name.clone())}</p>
+                </div>
                 <div class="balance-amount">
                     {move || {
                         let (loading, balance) = wallet_state.with(|s| (s.balance_loading, s.current_balance()));

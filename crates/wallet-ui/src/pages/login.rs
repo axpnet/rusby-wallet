@@ -55,7 +55,7 @@ pub fn Login() -> impl IntoView {
         gloo_timers::callback::Timeout::new(50, move || {
             // Phase 1: decrypt seed (PBKDF2)
             match s.decrypt_seed(idx, &pass) {
-                Ok((name, created_at, seed)) => {
+                Ok((name, _, seed)) => {
                     // Phase 2: derive addresses (deferred to next event loop tick)
                     set_loading_text.set(t("loading.deriving_keys"));
                     gloo_timers::callback::Timeout::new(0, move || {

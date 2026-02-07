@@ -119,8 +119,6 @@ pub fn hash160_pubkey(pubkey: &[u8; 33]) -> [u8; 20] {
 
 /// Decode a bech32 P2WPKH address (bc1q...) to its 20-byte witness program
 pub fn decode_bech32_address(address: &str) -> Result<[u8; 20], String> {
-    use bech32::Hrp;
-
     let (_hrp, _version, data) = bech32::segwit::decode(address)
         .map_err(|e| format!("Indirizzo Bitcoin non valido: {}", e))?;
 

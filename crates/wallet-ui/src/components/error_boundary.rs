@@ -65,6 +65,7 @@ fn html_escape(s: &str) -> String {
 }
 
 /// Leptos error fallback component — wraps children and catches render errors
+#[allow(unused)] // Leptos component macro generates struct field from prop
 #[component]
 pub fn AppErrorFallback(
     #[prop(into)] errors: ArcRwSignal<Errors>,

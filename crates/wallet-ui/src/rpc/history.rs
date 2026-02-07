@@ -135,7 +135,7 @@ pub async fn fetch_solana_history(
 /// Fetch TON transaction history
 pub async fn fetch_ton_history(
     address: &str,
-    rpc_url: &str,
+    _rpc_url: &str,
 ) -> Vec<TxRecord> {
     let url = format!(
         "https://toncenter.com/api/v2/getTransactions?address={}&limit=20",

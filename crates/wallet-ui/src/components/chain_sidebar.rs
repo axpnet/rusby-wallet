@@ -23,13 +23,12 @@ pub fn ChainSidebar() -> impl IntoView {
             </div>
             <div class="chain-sidebar-list">
                 {chains.into_iter().map(|chain| {
-                    let chain_id = chain.id.clone();
-                    let chain_id_active = chain_id.clone();
-                    let chain_id_select = chain_id.clone();
-                    let chain_id_balance = chain_id.clone();
+                    let chain_id_active = chain.id.clone();
+                    let chain_id_select = chain.id.clone();
+                    let chain_id_balance = chain.id.clone();
                     let name = chain.name.clone();
                     let ticker = chain.ticker.clone();
-                    let icon = chain.icon.clone();
+                    let icon_path = chain.icon_path;
 
                     let is_active = move || wallet_state.with(|s| s.active_chain == chain_id_active);
 
@@ -39,8 +38,8 @@ pub fn ChainSidebar() -> impl IntoView {
                     };
 
                     let balance_text = {
-                        let cid = chain_id_balance.clone();
-                        let tick = ticker.clone();
+                        let cid = chain_id_balance;
+                        let tick = ticker;
                         move || {
                             let bal = wallet_state.with(|s| {
                                 s.balances.get(&cid).cloned().unwrap_or_else(|| "0.0000".into())
@@ -55,7 +54,9 @@ pub fn ChainSidebar() -> impl IntoView {
                             class:active=is_active
                             on:click=select
                         >
-                            <div class="chain-sidebar-icon">{icon}</div>
+                            <div class="chain-sidebar-icon">
+                                <img src=icon_path alt=name.clone() class="chain-icon-img" />
+                            </div>
                             <div class="chain-sidebar-info">
                                 <div class="chain-sidebar-name">{name}</div>
                                 <div class="chain-sidebar-balance">{balance_text}</div>

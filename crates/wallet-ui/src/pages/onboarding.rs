@@ -15,26 +15,26 @@ use crate::components::SPINNER_SVG;
 struct ChainInfo {
     id: &'static str,
     name: &'static str,
-    icon: &'static str,
+    icon_path: &'static str,
 }
 
 const AVAILABLE_CHAINS: &[ChainInfo] = &[
-    ChainInfo { id: "ethereum", name: "Ethereum", icon: "ETH" },
-    ChainInfo { id: "polygon", name: "Polygon", icon: "POL" },
-    ChainInfo { id: "bsc", name: "BNB Chain", icon: "BNB" },
-    ChainInfo { id: "arbitrum", name: "Arbitrum", icon: "ARB" },
-    ChainInfo { id: "optimism", name: "Optimism", icon: "OP" },
-    ChainInfo { id: "base", name: "Base", icon: "BASE" },
-    ChainInfo { id: "solana", name: "Solana", icon: "SOL" },
-    ChainInfo { id: "bitcoin", name: "Bitcoin", icon: "BTC" },
-    ChainInfo { id: "ton", name: "TON", icon: "TON" },
-    ChainInfo { id: "cosmos", name: "Cosmos Hub", icon: "ATOM" },
-    ChainInfo { id: "osmosis", name: "Osmosis", icon: "OSMO" },
-    ChainInfo { id: "litecoin", name: "Litecoin", icon: "LTC" },
-    ChainInfo { id: "stellar", name: "Stellar", icon: "XLM" },
-    ChainInfo { id: "ripple", name: "XRP Ledger", icon: "XRP" },
-    ChainInfo { id: "dogecoin", name: "Dogecoin", icon: "DOGE" },
-    ChainInfo { id: "tron", name: "TRON", icon: "TRX" },
+    ChainInfo { id: "ethereum", name: "Ethereum", icon_path: "chain-icons/ethereum.png" },
+    ChainInfo { id: "polygon", name: "Polygon", icon_path: "chain-icons/polygon.png" },
+    ChainInfo { id: "bsc", name: "BNB Chain", icon_path: "chain-icons/bsc.png" },
+    ChainInfo { id: "arbitrum", name: "Arbitrum", icon_path: "chain-icons/arbitrum.png" },
+    ChainInfo { id: "optimism", name: "Optimism", icon_path: "chain-icons/optimism.png" },
+    ChainInfo { id: "base", name: "Base", icon_path: "chain-icons/base.png" },
+    ChainInfo { id: "solana", name: "Solana", icon_path: "chain-icons/solana.png" },
+    ChainInfo { id: "bitcoin", name: "Bitcoin", icon_path: "chain-icons/bitcoin.png" },
+    ChainInfo { id: "ton", name: "TON", icon_path: "chain-icons/ton.png" },
+    ChainInfo { id: "cosmos", name: "Cosmos Hub", icon_path: "chain-icons/cosmos.png" },
+    ChainInfo { id: "osmosis", name: "Osmosis", icon_path: "chain-icons/osmosis.png" },
+    ChainInfo { id: "litecoin", name: "Litecoin", icon_path: "chain-icons/litecoin.png" },
+    ChainInfo { id: "stellar", name: "Stellar", icon_path: "chain-icons/stellar.png" },
+    ChainInfo { id: "ripple", name: "XRP Ledger", icon_path: "chain-icons/ripple.png" },
+    ChainInfo { id: "dogecoin", name: "Dogecoin", icon_path: "chain-icons/dogecoin.png" },
+    ChainInfo { id: "tron", name: "TRON", icon_path: "chain-icons/tron.png" },
 ];
 
 /// Default enabled chains (fast to derive)
@@ -347,14 +347,16 @@ pub fn Onboarding() -> impl IntoView {
                                 let chain_id = chain.id.to_string();
                                 let chain_id2 = chain_id.clone();
                                 let name = chain.name;
-                                let icon = chain.icon;
+                                let icon_path = chain.icon_path;
                                 view! {
                                     <div
                                         class="chain-item"
                                         style="cursor: pointer;"
                                         on:click=move |_| toggle_chain(chain_id.clone())
                                     >
-                                        <div class="chain-icon" style="font-size: 11px;">{icon}</div>
+                                        <div class="chain-icon">
+                                            <img src=icon_path alt=name class="chain-icon-img" />
+                                        </div>
                                         <div class="chain-info" style="flex: 1;">
                                             <div class="chain-name">{name}</div>
                                         </div>

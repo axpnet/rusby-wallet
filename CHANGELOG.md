@@ -1,386 +1,401 @@
 # Changelog
 
+All notable changes to this project are documented in this file. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
 ## [0.9.0] - 2026-02-07
 
-### Aggiunto — Litecoin + Stellar + Ripple + Dogecoin + TRON (14 → 16 chain)
+### Added
 
-#### Nuove chain
-- **Litecoin**: BIP84 m/84'/2'/0'/0/0 → bech32 (ltc1...) P2WPKH, segwit completo
-- **Stellar**: SLIP-10 Ed25519 m/44'/148'/0' → StrKey (G...), XDR binary TX
-- **Ripple (XRP)**: secp256k1 m/44'/144'/0'/0/0 → Base58Check Ripple alphabet (r...), binary serialization
-- **Dogecoin**: secp256k1 m/44'/3'/0'/0/0 → Base58Check P2PKH legacy (D...), legacy sighash TX
-- **TRON**: secp256k1 m/44'/195'/0'/0/0 → Keccak256 + Base58Check (T...), API-assisted TX via TronGrid
+**Five new blockchain networks (14 to 16 supported chains):**
 
-#### Dettagli tecnici per chain
-- **Litecoin TX**: Segwit P2WPKH (riuso BitcoinTransaction con ChainId diverso), fee dinamica via litecoinspace.org
-- **Stellar TX**: XDR binary serialization, Ed25519 firma locale, Horizon API per submit
-- **Ripple TX**: Binary serialization custom (field codes + VL encoding), secp256k1 DER + SHA-512 Half, rippled JSON-RPC
-- **Dogecoin TX**: P2PKH legacy (diverso da BTC P2WPKH!) — legacy sighash, scriptSig con DER+pubkey, no witness
-- **TRON TX**: API-assisted — createtransaction via TronGrid, firma locale SHA256+secp256k1 (65 bytes r||s||v), verifica SICUREZZA parametri pre-firma
+- **Litecoin**: BIP-84 derivation (m/84'/2'/0'/0/0), Bech32 P2WPKH encoding (ltc1...), full SegWit transaction support with dynamic fee estimation via litecoinspace.org API
+- **Stellar**: SLIP-10 Ed25519 derivation (m/44'/148'/0'), StrKey Base32 encoding (G...), XDR binary transaction serialization with Ed25519 local signing, Horizon API integration
+- **Ripple (XRP)**: BIP-44 secp256k1 derivation (m/44'/144'/0'/0/0), Base58Check with Ripple-specific alphabet (r...), custom binary serialization with field codes and variable-length encoding, SHA-512 Half hashing
+- **Dogecoin**: BIP-44 secp256k1 derivation (m/44'/3'/0'/0/0), Base58Check P2PKH legacy encoding (D...), legacy sighash transaction format (distinct from Bitcoin P2WPKH), fixed 0.01 DOGE fee, Blockbook API
+- **TRON**: BIP-44 secp256k1 derivation (m/44'/195'/0'/0/0), Keccak256-to-Base58Check encoding (T...), API-assisted transaction construction via TronGrid with local SHA256+secp256k1 signing (65 bytes r||s||v), pre-signing parameter verification
 
-#### File per chain (pattern ripetuto × 5)
-- `chains/{chain}.rs` — derivazione indirizzo + test
-- `tx/{chain}.rs` — costruzione e firma TX + test
-- `rpc/{chain}.rs` — balance query, broadcast, UTXO/fee
-- `tx_send/{chain}.rs` — logica invio completa con zeroize
+**Cross-cutting updates:**
+- ChainId enum extended to 16 variants with mainnet and testnet configurations
+- CAIP-2 identifier mapping for all new chains (Dogecoin: bip122:1a91e3..., TRON: tron:mainnet)
+- CoinGecko price feed integration for all 16 chains
+- Transaction dispatch, balance queries, and fee estimation extended to all chains
+- Chain selector, onboarding, and send flow updated for 16-chain support
+- Official chain icon integration (PNG) replacing text-based abbreviations
 
-#### Aggiornamenti cross-cutting
-- `chains/mod.rs`: ChainId enum 14→16 varianti, get_chains() mainnet+testnet
-- `wallet.rs`: ALL_CHAIN_IDS + derive_addresses_filtered() per tutte le 16 chain
-- `caip.rs`: mapping CAIP-2 per Litecoin, Stellar, Ripple, Dogecoin, TRON
-- `rpc/mod.rs`: dispatch balance per 16 chain
-- `rpc/prices.rs`: CoinGecko mapping per tutte le 16 chain
-- `tx_send/mod.rs`: dispatch invio per 16 chain
-- `state.rs`: icone chain selector
-- `onboarding.rs`: AVAILABLE_CHAINS con 16 entry
-- `send.rs`: fee estimation per tutte le chain
+### Security
 
-### Metriche
-- **176 test** unitari passanti (da 123) — 53 nuovi per 5 chain
-- ~19.000 LOC Rust + ~770 JS
-- 0 errori compilazione
-- 40 nuovi file, ~30 file modificati
-- Nessuna nuova dipendenza Cargo
+- Zeroize applied on all signing paths for new chains
+- TRON: `verify_tron_tx_params()` validates API-returned transaction parameters before signing
+- Overflow-safe amount parsing (checked_mul/checked_add) for all new chains
+
+### Metrics
+
+- 176 unit tests (from 123), 53 new tests across 5 chains
+- ~20,750 lines of Rust, ~769 lines of JavaScript
+- 0 compiler errors, 0 compiler warnings
+- 40 new files, ~30 modified files
+
+---
 
 ## [0.8.1] - 2026-02-07
 
-### Aggiunto — UX & Layout Overhaul
+### Added
 
-#### Layout fullpage Talisman-like
-- **TopNav**: navigazione orizzontale nell'header (Home, Send, Receive, History, Settings) — visibile solo in fullpage
-- **ChainSidebar**: sidebar sinistra con selettore chain, icona, nome e bilancio per ogni chain — visibile solo in fullpage
-- **Layout flex**: header → [sidebar | content] — struttura flex-row con chain sidebar 240px + main content
-- **FullpageMode newtype**: risolto conflitto TypeId per `ReadSignal<bool>` nel context Leptos
-- **Popup invariato**: layout ≤500px con bottom nav + ChainSelector nella dashboard
+**Fullpage layout (Talisman-style):**
+- TopNav: horizontal navigation header (Home, Send, Receive, History, Settings) visible in fullpage mode
+- ChainSidebar: vertical chain selector with icon, name, and per-chain balance
+- Flex layout: header, sidebar (240px), and main content area
+- FullpageMode newtype wrapper to resolve ReadSignal<bool> TypeId conflict in Leptos context
+- Popup layout (420px, bottom navigation) remains unchanged
 
-#### UX onboarding & login
-- **SVG spinner animato**: triple-arc spinner inline nei pulsanti durante operazioni crypto
-- **Testo loading dinamico**: progressione fase per fase (BIP-39 seed → PBKDF2 key stretching → derivazione HD keys)
-- **Tab order corretto**: `tabindex="-1"` sui toggle visibilità password — Tab va direttamente tra i campi input
-- **Security badge**: badge "Enterprise-grade Security" nell'onboarding con 3 check (AES-256-GCM, PBKDF2 600k, chiavi locali)
+**Onboarding and login UX improvements:**
+- SVG spinner animation inline in buttons during cryptographic operations
+- Dynamic loading text with phase-by-phase progression (BIP-39 seed, PBKDF2 key stretching, HD key derivation)
+- Corrected tab order (tabindex="-1" on password visibility toggles)
+- Security badge in onboarding displaying encryption parameters (AES-256-GCM, PBKDF2 600k, local keys)
 
-#### Performance WASM (fix OOM)
-- **`signal.with()` ovunque**: eliminati tutti i `signal.get()` su WalletState — zero cloni di HashMap/Vec
-- **Memos dashboard**: `is_unlocked`, `active_chain`, `current_address` spezzano la cascata reattiva Effect→update→Effect
-- **Interval leak fix**: auto-refresh 30s spostato fuori da Effect (singola istanza con `forget()`, no leak)
-- **`with_untracked()`**: timer callbacks usano borrow senza tracking reattivo
+### Fixed
 
-#### Nuovi file
-- `components/top_nav.rs` — barra navigazione orizzontale fullpage
-- `components/chain_sidebar.rs` — sidebar selettore chain fullpage
+**WASM out-of-memory resolution:**
+- Replaced all `signal.get()` calls on WalletState with `signal.with(|s| s.field)` to eliminate unnecessary cloning of HashMap and Vec structures
+- Introduced Memo signals (`is_unlocked`, `active_chain`, `current_address`) to break reactive cascade chains (Effect to update to Effect)
+- Relocated auto-refresh interval outside of reactive Effects to prevent interval leak (N overlapping intervals on each re-run)
+- Timer callbacks switched to `signal.with_untracked()` for borrowing without reactive tracking
 
-#### i18n
-- 8 nuove chiavi × 9 lingue: fasi di caricamento (`loading.*`) + badge sicurezza (`security.*`)
-- ~304 chiavi totali in 9 lingue
+### Metrics
 
-### Metriche
-- 123 test unitari passanti
-- ~17.500 LOC Rust + ~770 JS
-- 0 errori compilazione
+- 123 unit tests passing
+- ~17,500 lines of Rust, ~769 lines of JavaScript
+- 0 compiler errors
+
+---
 
 ## [0.8.0] - 2026-02-06
 
-### Aggiunto — Theme Template System
+### Added
 
-#### Sistema di temi estensibile
-- **7 temi predefiniti**: Default (dark purple), Light, Midnight (blue), Ocean (teal), Forest (green), Atelier (warm orange, by GPT 5.2 Codex), Professional (corporate blue, by Qwen3Max)
-- **Tema custom**: 8 color picker con anteprima live + derivazione automatica variabili secondarie
-- **Hero preview**: anteprima animata del tema corrente con card mockup e accent dots (by GPT 5.2 Codex)
-- **Griglia selettore 3 colonne**: mini-preview bg+accent per ogni tema
-- **Schema facile per sviluppatori**: aggiungere un tema = 1 file `.rs` con 17 variabili CSS + 1 variante enum + 1 chiave i18n
-- **Architettura**: CSS custom properties impostate via `element.style.setProperty()` — nessun blocco CSS aggiuntivo per tema
-- **Migrazione automatica**: vecchi valori localStorage `"dark"`/`"light"` convertiti ai nuovi codici
+**Theme system:**
+- 7 built-in themes: Default (dark purple), Light, Midnight (blue), Ocean (teal), Forest (green), Atelier (warm orange), Professional (corporate blue)
+- Custom theme editor with 8 color pickers, automatic secondary variable derivation, and live preview
+- Animated hero preview card for theme selection
+- Three-column grid selector with mini-preview (background + accent) per theme
+- Architecture: CSS custom properties set via `element.style.setProperty()`, no additional CSS blocks per theme
+- Automatic migration from legacy localStorage values ("dark"/"light") to new theme codes
+- Developer-friendly schema: adding a theme requires one `.rs` file with 17 CSS variables, one enum variant, and one i18n key
 
-#### Modulo `theme/`
-- `theme/mod.rs` — `ThemeId` enum, `apply_theme()`, `ThemeSelector`, `CustomThemeEditor`, helper colori
-- `theme/default.rs` — tema scuro predefinito (#6c5ce7 accent)
-- `theme/light.rs` — tema chiaro
-- `theme/midnight.rs` — scuro profondo, accent blu (#5b8def)
-- `theme/ocean.rs` — scuro, accent teal (#00b4d8)
-- `theme/forest.rs` — scuro, accent verde (#2d9f5a)
-- `theme/atelier.rs` — caldo, accent arancione (#d28c45)
-- `theme/professional.rs` — corporate, accent blu (#4299e1), radius ridotto (10px/6px)
+**Internationalization:**
+- 18 new theme-related translation keys across 9 languages
+- Total: ~331 i18n keys
 
-#### i18n
-- 18 nuove chiavi tema in 9 lingue (settings.appearance, theme.*, color picker labels)
+### Security
 
-#### Sicurezza (Audit esterno GPT Codex 5.2)
-- **CRIT-1+2**: Riscrittura completa derivazione TON v4r2 con BOC parser, cell hash, state_init hash, address decoder
-- **HIGH-3**: Zeroize seed/private key su tutti i percorsi firma (Bitcoin, Solana, Cosmos, TON)
-- **HIGH-4**: Overflow check `checked_mul`/`checked_add` nei parser importi (EVM, Solana, TON)
-- **MED-5**: Origin check su `wallet_switchEthereumChain` in background.js
-- **MED-6**: `postMessage` con `targetOrigin: window.location.origin` (era `'*'`)
-- **MED-7**: `sanitize_image_url` restrittiva — scheme sconosciuti restituiscono stringa vuota
-- **MED-8**: Lockfile `package-lock.json` per walletconnect (supply chain)
+External security review findings (all remediated):
+- **Critical**: Complete rewrite of TON v4R2 address derivation with BOC parser, cell hash computation, state_init hash, and address decoder
+- **High**: Zeroize applied to seed and private key on all signing paths (Bitcoin, Solana, Cosmos, TON)
+- **High**: Overflow protection (checked_mul/checked_add) in amount parsers for EVM, Solana, and TON
+- **Medium**: Origin check on `wallet_switchEthereumChain` in background.js
+- **Medium**: postMessage with explicit targetOrigin (replaced wildcard `'*'`)
+- **Medium**: Restrictive `sanitize_image_url` (unknown schemes return empty string)
+- **Medium**: package-lock.json committed for WalletConnect supply chain integrity
 
-### Metriche
-- 123 test unitari passanti (da 118) — 5 nuovi per TON v4r2
-- ~331 chiavi i18n in 9 lingue
-- 8 file nuovi + ~20 file modificati
+### Metrics
+
+- 123 unit tests (from 118), 5 new tests for TON v4R2
+- 8 new files, ~20 modified files
+
+---
 
 ## [0.7.0] - 2026-02-05
 
-### Aggiunto — Milestone 5 "DeFi Wallet"
+### Added
 
-#### FASE 0: Internazionalizzazione (i18n)
-- Sistema i18n con 9 lingue: EN, IT, ES, FR, DE, PT, ZH, JA, KO
-- ~313 chiavi di traduzione con fallback automatico a inglese
-- `t("key")` reattivo nei componenti Leptos
-- Persistenza lingua in localStorage
-- Modulo `i18n/` con file per lingua
+**Internationalization (i18n):**
+- 9 languages: English, Italian, Spanish, French, German, Portuguese, Chinese, Japanese, Korean
+- ~313 translation keys with automatic English fallback
+- Reactive `t("key")` function in Leptos components
+- Language preference persisted in localStorage
 
-#### FASE 1: Utility
-- **Testnet toggle** — switch mainnet/testnet globale con RPC dedicati
-- **Address book** — etichette per indirizzi frequenti, auto-completamento nella pagina Send
-- **Export/import backup** — export cifrato AES-256-GCM del vault completo, import con verifica
+**Utility features:**
+- Mainnet/Testnet toggle with dedicated RPC endpoints per chain
+- Address book with contact labels and auto-completion in send flow
+- Encrypted wallet backup export/import (AES-256-GCM, full vault serialization with version and integrity checks)
 
-#### FASE 2: Token Avanzati
-- **CW-20 (Cosmos/Osmosis)** — query balance CosmWasm, invio con MsgExecuteContract Amino JSON
-- **Jetton (TON)** — token list predefinita, query via toncenter v3 API + fallback runGetMethod
-- **IBC token display** — visualizzazione token IBC con denom hash su Cosmos/Osmosis
-- **Token discovery esteso** — dropdown token nella pagina Send per Cosmos/Osmosis/TON
+**Advanced token support:**
+- CW-20 (Cosmos/Osmosis): CosmWasm balance queries and MsgExecuteContract transfers via Amino JSON
+- Jetton (TON): predefined token list, toncenter v3 API with runGetMethod fallback
+- IBC token display with denomination hash on Cosmos and Osmosis
+- Extended token dropdown in send flow for Cosmos, Osmosis, and TON
 
-#### FASE 3: NFT + Swap + Toast
-- **NFT Display** per EVM e Solana
-  - EVM: Alchemy NFT API v3 (`getNFTsForOwner`) per Ethereum, Polygon, Base, Arbitrum, Optimism
-  - Solana: Helius DAS API (`getAssetsByOwner`)
-  - Griglia 2 colonne con card (immagine, nome, collezione)
-  - Modale dettaglio con immagine grande, descrizione, contratto, token ID, standard
-  - Stato vuoto con hint per configurare API key
-  - Sanitizzazione URL immagini (IPFS, Arweave, HTTP → HTTPS gateway)
+**NFT display:**
+- EVM: Alchemy NFT API v3 (getNFTsForOwner) for Ethereum, Polygon, Base, Arbitrum, Optimism
+- Solana: Helius DAS API (getAssetsByOwner)
+- Two-column card grid with image, name, and collection
+- Detail modal with full-size image, description, contract address, token ID, and standard
+- Empty state with API key configuration hint
+- URL sanitization for IPFS, Arweave, and HTTP-to-HTTPS conversion
 
-- **Swap integrato** per chain EVM
-  - 0x Swap API v2 (price + quote con calldata TX)
-  - Token comuni predefiniti per 6 chain (ETH, USDC, USDT, DAI, WETH, WBTC)
-  - Slippage configurabile (0.3%, 0.5%, 1%, 3%)
-  - Display quote: rate, gas stimato, fonti DEX
-  - Esecuzione TX con calldata da 0x API, firma EVM standard
-  - Guard: messaggio per chain non-EVM
+**DEX swap:**
+- 0x Swap API v2 integration for 6 EVM chains
+- Predefined common tokens per chain (ETH, USDC, USDT, DAI, WETH, WBTC)
+- Configurable slippage (0.3%, 0.5%, 1%, 3%)
+- Quote display with exchange rate, estimated gas, and DEX source routing
+- Transaction execution with 0x API calldata and standard EVM signing
 
-- **Toast notifications**
-  - 4 tipi: Success, Error, Warning, Info
-  - Auto-dismiss dopo 5 secondi
-  - Animazione slide-in, posizione fixed top-right
+**Toast notifications:**
+- Four notification types: Success, Error, Warning, Info
+- Auto-dismiss after 5 seconds with slide-in animation
 
-- **Dashboard**: 4 action buttons (Send, Receive, Swap, NFT)
-- **Settings**: sezione API Keys (Alchemy, Helius, 0x) con salvataggio in localStorage
-- **CSP**: aggiornata `img-src` per NFT CDN (alchemy, cloudinary, ipfs, pinata, arweave, magiceden, nftstorage)
+**Dashboard:** four action buttons (Send, Receive, Swap, NFT)
+**Settings:** API key management section (Alchemy, Helius, 0x)
+**CSP:** updated img-src directive for NFT CDN domains
 
-### Metriche
-- 118 test unitari passanti (da 87) — 15 nuovi per NFT + Swap, 16 per i18n/utility
-- ~313 chiavi i18n in 9 lingue
-- 5 file nuovi + ~14 file modificati per FASE 3
+### Security
+
+Internal security audit (v0.7.0) findings remediated:
+- Hardcoded backup password replaced with user password modal
+- Zeroize on seed_bytes and private_key in transaction signing modules
+- JSON injection prevention via `validate_json_safe()` and `serde_json::json!()`
+- Sender validation in background.js onMessage handler
+- Cargo.lock committed for reproducible builds
+- Integer overflow protection (checked_mul/checked_add) in token amount parsers
+- Custom Debug implementation on EncryptedData with ciphertext redaction
+- PBKDF2 iterations increased from 100,000 to 600,000 (OWASP 2024)
+- RLP access_list encoding corrected (0xc0 for empty list)
+- Salt and nonce length validation in decrypt()
+- Gas price safety via saturating_mul(2)
+- Network request timeout (30s) with AbortController and status code validation
+
+### Metrics
+
+- 118 unit tests (from 87), 31 new tests
+- ~313 i18n keys across 9 languages
+
+---
 
 ## [0.6.0] - 2026-02-02
 
-### Aggiunto — Milestone 4 "Smart Wallet"
+### Added
 
-#### Sicurezza Avanzata
-- **TX simulation pre-firma** — simulazione via `eth_call`, warning se TX fallirebbe, decode revert reason `Error(string)`
-- **Phishing detection** — blocklist ~50 domini + typosquatting (Levenshtein ≤2) + heuristic TLD sospetti + keyword crypto — 7 test
-- **Scam address warning** — database indirizzi noti + risk assessment (self-send, zero-address, known scam) — 5 test
-- **Token approval management** — pagina gestione approvazioni ERC-20, scan spender noti (Uniswap, 1inch, PancakeSwap, SushiSwap, 0x) su 5 chain, revoke
-- **SecurityWarning component** — componente riusabile con 3 livelli severità (Low/Medium/High)
+**Transaction simulation:**
+- Pre-signing simulation via `eth_call` for EVM chains
+- Revert reason decoding (Error(string) selector 0x08c379a0)
+- SecurityWarning component with three severity levels (Low, Medium, High)
 
-#### Qualità
-- **Refactoring send.rs** — logica TX estratta in `tx_send/` con sotto-moduli per chain (665→315 righe UI)
-- **Error boundary UI** — panic hook WASM con overlay DOM + bottone ricarica
-- **Logging** — modulo `logging.rs` con macro `log_info!/warn!/error!/debug!`
+**Phishing detection:**
+- Domain blocklist (~50 known phishing domains)
+- Typosquatting detection (Levenshtein distance <= 2 from ~22 legitimate domains)
+- Suspicious TLD heuristics (.xyz, .tk, .ml, .ga, .cf, .gq, .top, .buzz, .icu)
+- Character substitution pattern detection (e.g., un1swap, meta4ask)
+- 7 unit tests
 
-### Metriche
-- 87 test unitari passanti (da 73) — 14 nuovi: 7 phishing + 5 scam + 2 erc20
+**Scam address detection:**
+- Known scam address database
+- Self-send and zero-address warnings
+- Real-time risk assessment during address entry
+- 5 unit tests
+
+**Token approval management:**
+- Scan ERC-20 approvals for known DEX routers (Uniswap V3, 1inch V5, PancakeSwap, SushiSwap, 0x)
+- Support for Ethereum, Polygon, BSC, Arbitrum, Base
+- One-click revoke via approve(spender, 0) transaction
+
+**Code quality:**
+- Send page refactored: transaction logic extracted to tx_send/ module (665 to 315 UI lines)
+- Error boundary with WASM panic hook and DOM overlay with reload button
+- Logging module with log_info! and log_error! macros
+
+### Metrics
+
+- 87 unit tests (from 73), 14 new tests
+
+---
 
 ## [0.5.0] - 2026-02-02
 
-### Aggiunto — Milestone 3 "WalletConnect"
+### Added
 
-#### WalletConnect v2
-- **WalletConnect SDK** bundlato (`@walletconnect/web3wallet` via esbuild → ESM)
-- **Wrapper RusbyWC** con storage adapter per `chrome.storage` (sopravvive restart SW)
-- **Keep-alive Service Worker** con `chrome.alarms` ogni 24s
-- **Event handlers WC**: session_proposal → popup, session_request → coda approvazione
-- **Mapping CAIP-2 ↔ ChainId** (eip155, solana, cosmos, bip122, ton) — 7 test
-- **Pagina WalletConnect** in UI — input URI `wc:...`, lista sessioni attive, disconnessione
-- **Pagina proposta sessione WC** — mostra dApp, chain richieste, approva/rifiuta
-- **Firma completa nel popup** — modale password, decrypt seed on-demand, personal_sign + EIP-712
-- **Namespace builder** per sessioni WC (metodi + eventi per namespace)
-- **Configurazione WC Project ID** in Settings
+**WalletConnect v2:**
+- @walletconnect/web3wallet SDK bundled via esbuild (ESM output)
+- RusbyWC wrapper with chrome.storage adapter for service worker persistence
+- Service worker keep-alive via chrome.alarms (24-second interval)
+- Session proposal popup with chain display and approve/reject flow
+- Session request handling via approval queue
+- CAIP-2 to ChainId bidirectional mapping (eip155, solana, cosmos, bip122, ton) with 7 tests
+- WalletConnect page: URI input, active session list, disconnect
+- Full message signing in popup (password modal, on-demand seed decrypt, personal_sign + EIP-712)
+- Namespace builder for WalletConnect sessions (methods + events per namespace)
+- WalletConnect Project ID configuration in Settings
 
-### Metriche
-- 73 test unitari passanti (da 66) — 7 nuovi per CAIP-2
+### Metrics
+
+- 73 unit tests (from 66), 7 new tests for CAIP-2
+
+---
 
 ## [0.4.0] - 2026-02-02
 
-### Aggiunto — Milestone 2 "Connected Wallet"
+### Added
 
-- **Background Service Worker** per estensione Chrome
-  - Routing messaggi tra popup, content script e dApp
-  - Gestione stato lock wallet centralizzato
-  - Coda richieste pendenti con persistenza in chrome.storage
-  - Origini approvate con gestione permessi
+**Chrome extension architecture (three-context model):**
 
-- **Content Script** — bridge pagina web ↔ background
-  - Iniezione inpage.js nel contesto pagina
-  - Relay bidirezionale via port long-lived
-  - Filtering messaggi per evitare conflitti
+- **Background service worker**: message routing between popup, content script, and dApps; centralized lock state management; persistent request queue via chrome.storage; per-origin permission management
+- **Content script**: bidirectional bridge between web page and background via long-lived port; inpage.js injection; message filtering
+- **Injected provider (EIP-1193)**: `window.rusby` with `request({method, params})`, events (connect, disconnect, chainChanged, accountsChanged), methods (eth_requestAccounts, eth_accounts, eth_chainId, eth_sendTransaction, personal_sign, eth_signTypedData_v4, wallet_switchEthereumChain), legacy compatibility (enable, send, sendAsync)
 
-- **Injected Provider EIP-1193** (`window.rusby`)
-  - `request({method, params})` → Promise
-  - Eventi: `connect`, `disconnect`, `chainChanged`, `accountsChanged`
-  - Metodi: `eth_requestAccounts`, `eth_accounts`, `eth_chainId`, `eth_sendTransaction`, `personal_sign`, `eth_signTypedData_v4`, `wallet_switchEthereumChain`
-  - Legacy: `enable()`, `send()`, `sendAsync()`
+**EIP-6963 Multi-Provider Discovery:**
+- Provider announcement with UUID, name, SVG icon, RDNS (io.rusby.wallet)
+- Listener for eip6963:requestProvider with re-announcement
 
-- **EIP-6963 Multi-Provider Discovery**
-  - Annuncio provider con uuid, name, icon SVG, rdns `io.rusby.wallet`
-  - Ascolto `eip6963:requestProvider` e ri-annuncio
+**Message signing:**
+- EIP-191 (personal_sign): Ethereum prefix + keccak256 + secp256k1 ECDSA, address recovery from signature (6 tests)
+- EIP-712 (typed structured data): domain separator, struct hash, sign_typed_data_hash, hash_eip712_domain() (6 tests)
 
-- **Firma messaggi EIP-191 (personal_sign)** in Rust puro
-  - Prefix `\x19Ethereum Signed Message:\n` + keccak256 + secp256k1
-  - Recovery address da firma
-  - 6 test unitari
+**dApp approval UI:**
+- Approval page with origin, method, and parameters display
+- Approve/Reject with user feedback
+- Automatic popup opening via URL parameter (?approve=requestId)
+- Connected dApps management in Settings with per-origin revocation
 
-- **Firma dati tipizzati EIP-712** in Rust puro
-  - Domain separator, struct hash, sign_typed_data_hash
-  - hash_eip712_domain() per calcolo domain separator
-  - 6 test unitari
+### Security
 
-- **Pagina approvazione dApp** nel popup
-  - Mostra origine, metodo, parametri della richiesta
-  - Bottoni Approva/Rifiuta con feedback
-  - Apertura automatica da URL param `?approve=requestId`
+- Private keys never exposed outside the popup WASM context
+- Background service worker handles routing and session state only
+- Granular per-origin dApp permissions
 
-- **Gestione dApp connesse** in Settings
-  - Lista origini approvate
-  - Bottone "Revoca" per ciascuna origine
+### Metrics
 
-- **CSP per web app standalone** via meta tag in index.html
+- 66 unit tests (from 54), 12 new tests for EIP-191/712
 
-### Sicurezza
-
-- Chiavi private MAI esposte fuori dal popup WASM
-- Background service worker gestisce solo routing e stato sessione
-- Permessi dApp granulari per origine
-
-### Metriche
-
-- 66 test unitari passanti (da 54) — 12 nuovi per EIP-191/712
-- 3 file JS nuovi per architettura 3-contesti (background, content-script, inpage)
+---
 
 ## [0.3.0] - 2026-02-02
 
-### Aggiunto — Milestone 1 "Usable Wallet"
+### Added
 
-- **Bitcoin P2WPKH completo** — derivazione, firma TX, balance e broadcast
-  - Derivazione indirizzo BIP84 `m/84'/0'/0'/0/0` → bech32 (`bc1q...`)
-  - Firma TX SegWit con BIP-143 sighash, DER encoding, witness serialization
-  - RPC via mempool.space API: balance, UTXO fetch, fee estimation, broadcast
-  - Moduli: `chains/bitcoin.rs`, `tx/bitcoin.rs`, `rpc/bitcoin.rs`
+**Bitcoin P2WPKH:**
+- BIP-84 address derivation (m/84'/0'/0'/0/0) with Bech32 encoding (bc1...)
+- SegWit transaction signing with BIP-143 sighash, DER signature encoding, and witness serialization
+- mempool.space API integration: balance, UTXO fetch, fee estimation, transaction broadcast
 
-- **Token ERC-20** — display balance e invio per 6 chain EVM
-  - Token predefiniti: USDT, USDC, DAI, WETH, WBTC
-  - Encoding ABI: `balanceOf`, `transfer`
-  - Sezione "Tokens" nella dashboard con balance reali
+**ERC-20 tokens (6 EVM chains):**
+- Predefined tokens: USDT, USDC, DAI, WETH, WBTC
+- ABI encoding for balanceOf and transfer
+- Token balance display in dashboard
 
-- **Token SPL** — display balance per Solana
-  - Token predefiniti: USDC, USDT, WSOL, JUP
-  - Fetch via `getTokenAccountsByOwner` RPC
-  - Associated Token Account (ATA) derivation
+**SPL tokens (Solana):**
+- Predefined tokens: USDC, USDT, WSOL, JUP
+- getTokenAccountsByOwner RPC integration
+- Associated Token Account (ATA) derivation
 
-- **Cronologia TX basica** per tutte le chain
-  - EVM: Etherscan-like API per 6 chain
-  - Solana: `getSignaturesForAddress`
-  - TON: toncenter `/getTransactions`
-  - Cosmos: LCD `/cosmos/tx/v1beta1/txs`
-  - Pagina History con direction, importo, link a block explorer
+**Transaction history:**
+- EVM: Etherscan-compatible API for 6 chains
+- Solana: getSignaturesForAddress
+- TON: toncenter /getTransactions
+- Cosmos: LCD /cosmos/tx/v1beta1/txs
+- History page with direction, amount, and block explorer links
 
-- **Portfolio totale in USD**
-  - Fetch prezzi da CoinGecko API
-  - Equivalente USD sotto ogni balance + totale portfolio
-  - Cache in localStorage, refresh ogni 60 secondi
+**Portfolio:**
+- USD portfolio valuation via CoinGecko API
+- Per-chain USD equivalent display
+- Price caching in localStorage with 60-second refresh
 
-- **Validazione forza password** nella creazione wallet
-  - Enum `PasswordStrength` (Weak/Fair/Strong) con indicatore colorato
-  - Blocco creazione wallet se password è Weak
+**Password strength validation:**
+- PasswordStrength enum (Weak/Fair/Strong) with color indicator
+- Wallet creation blocked on Weak passwords
 
-- **Auto-lock con timeout** (implementato, default OFF)
-  - Timer inattività con reset su click/keypress
-  - Pagina Settings con toggle ON/OFF e dropdown timeout (1/5/15/30 min)
+**Auto-lock:**
+- Configurable inactivity timeout (1, 5, 15, 30 minutes)
+- Timer reset on user interaction (click, keypress)
+- Settings toggle (default: off)
 
-- **Pagina Settings** nella navigazione
+### Security
 
-### Sicurezza
+- Cosmos address derivation corrected: SHA256 truncation replaced with RIPEMD160(SHA256(pubkey)) per Cosmos SDK specification
+- Zeroize applied to decrypted seed in encrypt(), decrypt(), create_wallet(), and unlock_wallet()
 
-- **Fix derivazione Cosmos**: sostituito SHA256 troncato con `RIPEMD160(SHA256(pubkey))` — ora conforme allo standard Cosmos SDK
-- **Zeroize chiavi in memoria**: `zeroize` su seed decriptato in `encrypt()`, `decrypt()`, `create_wallet()`, `unlock_wallet()`
-- Dipendenza `ripemd = "0.1"` e `zeroize = { version = "1", features = ["derive"] }`
+### Metrics
 
-### Metriche
+- 54 unit tests (from 41), 13 new tests (Bitcoin: 9, ERC-20: 4)
 
-- 54 test unitari passanti (da 41)
-- 13 nuovi test: Bitcoin derivazione (4), Bitcoin TX (5), ERC-20 encoding (4)
+---
 
 ## [0.2.0] - 2026-01-30
 
-### Aggiunto
-- **Balance reale via RPC** per tutte le chain (EVM, Solana, TON, Cosmos)
-  - Modulo `rpc/` in wallet-ui con client per ogni chain
-  - EVM: `eth_getBalance` JSON-RPC
-  - Solana: `getBalance` JSON-RPC
-  - TON: `getAddressBalance` via toncenter REST
-  - Cosmos/Osmosis: `/cosmos/bank/v1beta1/balances` REST
-  - Auto-refresh ogni 30 secondi, indicatore loading nella dashboard
+### Added
 
-- **Firma e invio transazioni** per tutte le chain
-  - Modulo `tx/` in wallet-core con signing per ogni chain
-  - EVM: EIP-1559 (Type 2) con RLP encoding e secp256k1 signing
-  - Solana: SystemProgram transfer con Ed25519 signing
-  - TON: wallet v4r2 external message con Ed25519 signing
-  - Cosmos: MsgSend Amino JSON con secp256k1 signing
-  - Gas estimation automatica via RPC
-  - Modale di conferma con riepilogo TX e richiesta password
-  - Decrypt seed on-demand per la firma (mai in memoria persistente)
+**Real-time balance queries:**
+- RPC client module with per-chain implementations
+- EVM: eth_getBalance JSON-RPC
+- Solana: getBalance JSON-RPC
+- TON: getAddressBalance via toncenter REST
+- Cosmos/Osmosis: /cosmos/bank/v1beta1/balances REST
+- 30-second auto-refresh with loading indicator
 
-- **QR code ricezione** in Rust puro
-  - Generazione QR come SVG inline via crate `qrcode`
-  - Rendering diretto nella pagina Receive, nessuna dipendenza JS
+**Transaction signing and broadcast:**
+- Per-chain transaction construction and signing
+- EVM: EIP-1559 Type 2 with RLP encoding and secp256k1 ECDSA
+- Solana: SystemProgram transfer with Ed25519
+- TON: Wallet v4R2 external message with Ed25519
+- Cosmos: MsgSend Amino JSON with secp256k1 ECDSA
+- Automatic gas estimation via RPC
+- Confirmation modal with transaction summary and password re-entry
+- On-demand seed decryption for signing (never persistent)
 
-- 13 nuovi test unitari (totale: 41 passanti)
+**QR code generation:**
+- Pure Rust QR code generation via qrcode crate
+- SVG inline rendering in Receive page
 
-### Dipendenze aggiunte
-- `qrcode 0.14` — generazione QR code (wallet-core)
-- `rlp 0.6` — RLP encoding per tx EVM (wallet-core)
-- `gloo-net 0.6` — HTTP fetch WASM-compatibile (wallet-ui)
-- `hex 0.4`, `bs58 0.5` — encoding in wallet-ui
+### Dependencies Added
+
+- qrcode 0.14 (QR generation)
+- rlp 0.6 (RLP encoding for EVM transactions)
+- gloo-net 0.6 (WASM-compatible HTTP)
+- hex 0.4, bs58 0.5 (encoding utilities)
+
+### Metrics
+
+- 41 unit tests (from 28), 13 new tests
+
+---
 
 ## [0.1.0] - 2026-01-30
 
-### Aggiunto
-- **wallet-core**: libreria crypto completa in pure Rust
-  - Generazione e validazione mnemonic BIP39 (12-24 parole)
-  - Derivazione HD keys BIP32/BIP44 (secp256k1) e SLIP-10 (Ed25519)
-  - Derivazione indirizzi per 11 chain: Ethereum, Polygon, BSC, Optimism, Base, Arbitrum, Solana, TON, Bitcoin, Cosmos Hub, Osmosis
-  - Cifratura/decifratura AES-256-GCM con PBKDF2 (100k iterazioni)
-  - Wallet manager: creazione e unlock wallet cifrati
-  - 28 test unitari passanti
+### Added
 
-- **wallet-ui**: frontend Leptos 0.7 compilato a WASM
-  - Wizard onboarding 3 step (genera/importa seed → password → conferma)
-  - Login con unlock wallet cifrato
-  - Dashboard con balance hero, action buttons, chain selector
-  - Pagina Send (mock)
-  - Pagina Receive con display indirizzo e copia in clipboard
-  - Tema dark/light con toggle
-  - Layout popup (420px, bottom nav) per estensione
-  - Layout fullpage (sidebar, griglia chain) per web
-  - Rilevamento automatico contesto extension/web
-  - Pulsante espandi popup → tab fullpage
-  - Supporto `chrome.storage.local` per estensione con sync a localStorage
+**wallet-core library:**
+- BIP-39 mnemonic generation and validation (12 or 24 words)
+- BIP-32/BIP-44 HD key derivation (secp256k1) and SLIP-10 (Ed25519)
+- Address derivation for 11 chains: Ethereum, Polygon, BSC, Optimism, Base, Arbitrum, Solana, TON, Bitcoin, Cosmos Hub, Osmosis
+- AES-256-GCM encryption with PBKDF2 key derivation (100,000 iterations)
+- Wallet manager: create and unlock encrypted wallets
 
-- **Extension Chrome**: Manifest v3 con CSP per WASM
-  - Build script automatizzato (`build-extension.sh`)
-  - Icone SVG placeholder generate automaticamente
+**wallet-ui frontend:**
+- Leptos 0.7 CSR compiled to WebAssembly
+- Three-step onboarding wizard (generate/import seed, set password, confirm)
+- Login with encrypted wallet unlock
+- Dashboard with balance display, action buttons, and chain selector
+- Send page (placeholder)
+- Receive page with address display and clipboard copy
+- Dark/light theme toggle
+- Popup layout (420px, bottom navigation) for Chrome extension
+- Fullpage layout (sidebar, chain grid) for web application
+- Automatic extension/web context detection
+- Popup-to-fullpage expansion button
+- chrome.storage.local support with localStorage synchronization
 
-### Sicurezza
-- Seed sempre cifrato con AES-256-GCM prima di essere salvato
-- Password mai persistita, solo in memoria durante la sessione
-- PBKDF2 100.000 iterazioni per key derivation
+**Chrome extension:**
+- Manifest v3 with CSP for WebAssembly
+- Automated build script (build-extension.sh)
+- Auto-generated SVG placeholder icons
+
+### Security
+
+- Seed encrypted with AES-256-GCM before persistence
+- Password never persisted (memory-only during session)
+- PBKDF2 with 100,000 iterations for key derivation
+
+### Metrics
+
+- 28 unit tests passing

@@ -18,7 +18,6 @@ use std::collections::HashMap;
 use zeroize::Zeroize;
 
 use crate::bip39_utils;
-use crate::chains;
 use crate::chains::evm::derive_evm_address;
 use crate::chains::solana::derive_solana_address;
 use crate::chains::ton::derive_ton_address;
@@ -231,11 +230,6 @@ impl WalletStore {
     pub fn wallet_names(&self) -> Vec<String> {
         self.wallets.iter().map(|w| w.name.clone()).collect()
     }
-}
-
-/// Derive addresses for all supported chains (mainnet)
-fn derive_all_addresses(seed: &[u8; 64]) -> Result<HashMap<String, String>, String> {
-    derive_all_addresses_for_network(seed, false)
 }
 
 /// Derive addresses for all supported chains with network selection
