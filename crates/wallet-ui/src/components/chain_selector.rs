@@ -9,8 +9,9 @@ use crate::state::*;
 pub fn ChainSelector() -> impl IntoView {
     let wallet_state: ReadSignal<WalletState> = expect_context();
     let set_wallet_state: WriteSignal<WalletState> = expect_context();
+    let testnet_mode: ReadSignal<bool> = expect_context();
 
-    let chains = chain_list();
+    let chains = chain_list_for(testnet_mode.get_untracked());
 
     view! {
         <div class="chain-list">
@@ -24,7 +25,7 @@ pub fn ChainSelector() -> impl IntoView {
                 let ticker_balance = ticker.clone();
                 let icon = chain.icon.clone();
 
-                let is_active = move || wallet_state.get().active_chain == chain_id_for_active;
+                let is_active = move || wallet_state.with(|s| s.active_chain == chain_id_for_active);
 
                 let select = move |_| {
                     let id = chain_id_for_select.clone();
@@ -36,10 +37,12 @@ pub fn ChainSelector() -> impl IntoView {
                 let balance = {
                     let cid = chain_id_for_balance.clone();
                     move || {
-                        wallet_state.get().balances
-                            .get(&cid)
-                            .cloned()
-                            .unwrap_or_else(|| "0.0000".into())
+                        wallet_state.with(|s| {
+                            s.balances
+                                .get(&cid)
+                                .cloned()
+                                .unwrap_or_else(|| "0.0000".into())
+                        })
                     }
                 };
 

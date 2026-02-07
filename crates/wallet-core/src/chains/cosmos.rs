@@ -5,11 +5,12 @@
 // chains/cosmos: Cosmos SDK address derivation (ATOM, Osmosis)
 //
 // Functions:
-//   derive_cosmos_address() — seed → BIP44 m/44'/118'/0'/0/0 → secp256k1 → SHA256 → bech32
+//   derive_cosmos_address() — seed → BIP44 m/44'/118'/0'/0/0 → secp256k1 → RIPEMD160(SHA256) → bech32
 //   bech32_encode()         — Encode with human-readable prefix (cosmos1..., osmo1...)
 
 use crate::bip32_utils::{self, DerivationPath};
 use k256::ecdsa::SigningKey;
+use ripemd::Ripemd160;
 use sha2::{Digest, Sha256};
 
 use super::{Chain, ChainId};
@@ -65,9 +66,7 @@ impl Chain for CosmosChain {
 
 /// Derive Cosmos address from seed
 /// Path: m/44'/118'/0'/0/0 (secp256k1)
-/// Address = bech32(prefix, ripemd160(sha256(compressed_pubkey)))
-/// Since ripemd160 adds a dependency, Cosmos SDK actually uses sha256 truncated
-/// Standard: sha256(pubkey) → first 20 bytes → bech32
+/// Address = bech32(prefix, RIPEMD160(SHA256(compressed_pubkey)))
 pub fn derive_cosmos_address(seed: &[u8; 64], prefix: &str, coin_type: u32) -> Result<String, String> {
     let path = DerivationPath::bip44(coin_type);
     let (private_key, _) = bip32_utils::derive_key_from_seed(seed, &path)?;
@@ -80,18 +79,12 @@ pub fn derive_cosmos_address(seed: &[u8; 64], prefix: &str, coin_type: u32) -> R
     let pubkey_compressed = verifying_key.to_encoded_point(true);
     let pubkey_bytes = pubkey_compressed.as_bytes();
 
-    // SHA256 hash
-    let mut hasher = Sha256::new();
-    hasher.update(pubkey_bytes);
-    let sha256_hash = hasher.finalize();
-
-    // Take first 20 bytes (this is the standard Cosmos address hash)
-    // Note: full standard uses RIPEMD160(SHA256(pubkey)), but many implementations
-    // just use SHA256 truncated. We'll add ripemd160 if needed for compatibility.
-    let addr_bytes = &sha256_hash[..20];
+    // RIPEMD160(SHA256(pubkey)) — standard Cosmos SDK address derivation
+    let sha256_hash = Sha256::digest(pubkey_bytes);
+    let addr_bytes = Ripemd160::digest(sha256_hash);
 
     // Bech32 encode
-    bech32_encode(prefix, addr_bytes)
+    bech32_encode(prefix, &addr_bytes)
 }
 
 /// Bech32 encoding for Cosmos addresses

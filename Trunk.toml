@@ -1,6 +1,7 @@
 [build]
 target = "crates/wallet-ui/index.html"
 dist = "dist"
+release = true
 
 [watch]
 watch = ["crates/wallet-ui/src", "crates/wallet-core/src"]

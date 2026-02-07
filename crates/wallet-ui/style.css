@@ -19,17 +19,7 @@
     --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="light"] {
-    --bg-primary: #f5f6fa;
-    --bg-secondary: #ffffff;
-    --bg-card: #ffffff;
-    --bg-input: #f0f1f5;
-    --text-primary: #1a1d27;
-    --text-secondary: #5a5f72;
-    --text-muted: #9aa0b0;
-    --border: #e0e2ea;
-    --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-}
+/* Themes are applied via JS (style.setProperty) — see theme/mod.rs */
 
 * {
     margin: 0;
@@ -148,6 +138,162 @@ body.fullpage .content {
     max-width: 900px;
     margin: 0 auto;
     padding: 32px 40px;
+}
+
+/* =============================================
+   FULLPAGE TALISMAN-LIKE LAYOUT (v0.8.1)
+   ============================================= */
+
+/* New fullpage layout container */
+body.fullpage .app-layout-fp,
+.app-container.fullpage .app-layout-fp {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Hide old nav sidebar when using new layout */
+body.fullpage .sidebar,
+.app-container.fullpage .sidebar {
+    display: none;
+}
+
+/* Top Navigation — horizontal tabs in header */
+.top-nav {
+    display: none;
+}
+
+body.fullpage .top-nav,
+.app-container.fullpage .top-nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+}
+
+.top-nav-item {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.top-nav-item:hover {
+    color: var(--text-primary);
+    background: var(--accent-light);
+}
+
+.top-nav-item.active {
+    color: var(--accent);
+    font-weight: 600;
+    background: var(--accent-light);
+}
+
+/* Chain Sidebar — replaces old nav sidebar */
+.chain-sidebar {
+    display: none;
+}
+
+body.fullpage .chain-sidebar,
+.app-container.fullpage .chain-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    border-right: 1px solid var(--border);
+    background: var(--bg-secondary);
+    padding: 16px 12px;
+    flex-shrink: 0;
+    min-height: calc(100vh - 57px);
+    overflow-y: auto;
+}
+
+.chain-sidebar-header {
+    padding: 4px 12px 12px;
+}
+
+.chain-sidebar-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.chain-sidebar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chain-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    color: var(--text-primary);
+    text-align: left;
+    transition: all 0.15s;
+    width: 100%;
+    font-family: inherit;
+}
+
+.chain-sidebar-item:hover {
+    background: var(--accent-light);
+}
+
+.chain-sidebar-item.active {
+    background: var(--accent-light);
+    border-left-color: var(--accent);
+}
+
+.chain-sidebar-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.chain-sidebar-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chain-sidebar-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chain-sidebar-balance {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
 }
 
 /* Popup centered card on desktop */
@@ -298,6 +444,128 @@ textarea {
     border-radius: var(--radius);
     padding: 20px;
     margin-bottom: 12px;
+}
+
+/* Theme selector */
+.theme-hero {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.theme-hero::before {
+    content: "";
+    position: absolute;
+    inset: -40% -10% auto auto;
+    width: 60%;
+    height: 140%;
+    background: radial-gradient(circle at 30% 30%, var(--accent-light), transparent 60%);
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.theme-hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 1;
+}
+
+.theme-hero-kicker {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.theme-hero-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.theme-hero-meta {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.theme-hero-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-light);
+}
+
+.theme-hero-right {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    z-index: 1;
+}
+
+.theme-hero-card {
+    width: 110px;
+    height: 70px;
+    border-radius: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.theme-hero-card.muted {
+    background: var(--bg-secondary);
+    opacity: 0.9;
+}
+
+.theme-hero-card-bar {
+    width: 60%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--accent);
+}
+
+.theme-hero-card-line {
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--border);
+}
+
+.theme-hero-card-line.short {
+    width: 70%;
+}
+
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.theme-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: var(--bg-input);
+    transition: all 0.2s;
 }
 
 /* Content area */
@@ -598,3 +866,94 @@ textarea {
 .justify-between { justify-content: space-between; }
 .w-full { width: 100%; }
 .hidden { display: none; }
+
+/* NFT Grid */
+.nft-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 0 4px;
+}
+.nft-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.nft-card:hover { border-color: var(--accent); }
+.nft-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--bg-secondary);
+}
+.nft-card-info {
+    padding: 8px 10px;
+}
+.nft-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nft-card-collection {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* NFT Detail Modal */
+.nft-detail-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.nft-detail {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    max-width: 400px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+.nft-detail img {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 320px;
+    pointer-events: none;
+}
+.toast {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    animation: toast-in 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    pointer-events: auto;
+}
+.toast-success { background: var(--success); color: #000; }
+.toast-error { background: var(--danger); color: #fff; }
+.toast-warning { background: var(--warning); color: #000; }
+.toast-info { background: var(--accent); color: #fff; }
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}

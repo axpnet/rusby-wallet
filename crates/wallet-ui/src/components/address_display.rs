@@ -4,13 +4,14 @@
 use leptos::prelude::*;
 
 use crate::state::*;
+use crate::i18n::t;
 
 #[component]
 pub fn AddressDisplay() -> impl IntoView {
     let wallet_state: ReadSignal<WalletState> = expect_context();
     let (copied, set_copied) = signal(false);
 
-    let address = move || wallet_state.get().current_address();
+    let address = move || wallet_state.with(|s| s.current_address());
 
     let short_address = move || {
         let addr = address();
@@ -37,7 +38,7 @@ pub fn AddressDisplay() -> impl IntoView {
         <div class="address-display">
             <span>{short_address}</span>
             <button class="copy-btn" on:click=copy>
-                {move || if copied.get() { "Copied!" } else { "Copy" }}
+                {move || if copied.get() { t("common.copied") } else { t("common.copy") }}
             </button>
         </div>
     }

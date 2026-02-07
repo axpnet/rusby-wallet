@@ -7,6 +7,7 @@ pub mod evm;
 pub mod solana;
 pub mod ton;
 pub mod cosmos;
+pub mod bitcoin;
 
 use crate::chains::ChainId;
 use serde::{Deserialize, Serialize};

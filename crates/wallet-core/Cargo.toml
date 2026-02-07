@@ -22,6 +22,7 @@ curve25519-dalek = "4"
 
 # Cosmos
 bech32 = "0.11"
+ripemd = "0.1"
 
 # Encoding
 bs58 = "0.5"
@@ -29,6 +30,7 @@ hex = "0.4"
 
 # Encryption
 aes-gcm = "0.10"
+zeroize = { version = "1", features = ["derive"] }
 rand = "0.8"
 sha2 = "0.10"
 hmac = "0.12"

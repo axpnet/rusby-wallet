@@ -13,6 +13,9 @@ wasm-bindgen = { workspace = true }
 web-sys = { version = "0.3", features = [
     "Window", "Document", "Storage", "HtmlInputElement",
     "HtmlElement", "Navigator", "Clipboard", "console",
+    "Url", "UrlSearchParams", "Location",
+    "Blob", "BlobPropertyBag", "HtmlAnchorElement",
+    "FileReader", "FileList", "File",
 ] }
 js-sys = "0.3"
 gloo-timers = "0.3"
@@ -20,3 +23,4 @@ gloo-net = { version = "0.6", features = ["http"] }
 wasm-bindgen-futures = "0.4"
 hex = "0.4"
 bs58 = "0.5"
+zeroize = "1"

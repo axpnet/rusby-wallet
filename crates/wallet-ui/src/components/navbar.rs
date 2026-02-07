@@ -4,23 +4,26 @@
 use leptos::prelude::*;
 
 use crate::state::AppPage;
+use crate::i18n::t;
 
 #[component]
 pub fn BottomNav() -> impl IntoView {
     let page: ReadSignal<AppPage> = expect_context();
     let set_page: WriteSignal<AppPage> = expect_context();
 
-    let nav_items = vec![
-        ("Home", AppPage::Dashboard),
-        ("Send", AppPage::Send),
-        ("Receive", AppPage::Receive),
-        ("Settings", AppPage::Settings),
+    let nav_items: Vec<(&str, AppPage)> = vec![
+        ("nav.home", AppPage::Dashboard),
+        ("nav.send", AppPage::Send),
+        ("nav.receive", AppPage::Receive),
+        ("nav.history", AppPage::History),
+        ("nav.settings", AppPage::Settings),
     ];
 
     view! {
         <nav class="bottom-nav">
-            {nav_items.into_iter().map(|(label, target)| {
+            {nav_items.into_iter().map(|(key, target)| {
                 let target_clone = target.clone();
+                let key = key.to_string();
                 let is_active = move || page.get() == target_clone;
                 view! {
                     <button
@@ -28,7 +31,7 @@ pub fn BottomNav() -> impl IntoView {
                         class:active=is_active
                         on:click=move |_| set_page.set(target.clone())
                     >
-                        {label}
+                        {let k = key.clone(); move || t(&k)}
                     </button>
                 }
             }).collect::<Vec<_>>()}

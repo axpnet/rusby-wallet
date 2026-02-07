@@ -2,6 +2,10 @@
 /target/
 /dist/
 /extension-dist/
+crates/wallet-ui/dist/
+
+# Node modules
+node_modules/
 
 # OS files
 .DS_Store
@@ -15,4 +19,7 @@ Thumbs.db
 
 # Rust
 **/*.rs.bk
-Cargo.lock
+# Cargo.lock NON ignorato — build riproducibili (security: supply chain)
+
+# Dev docs (audit interni, analisi, note di sviluppo)
+docs/dev/

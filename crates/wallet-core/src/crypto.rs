@@ -17,21 +17,38 @@ use aes_gcm::{
 use pbkdf2::pbkdf2_hmac;
 use rand::RngCore;
 use sha2::Sha256;
+use zeroize::Zeroize;
 
-const PBKDF2_ITERATIONS: u32 = 100_000;
+// PBKDF2-HMAC-SHA256: 600,000 iterations (OWASP 2023 recommendation).
+// In release WASM (~3-5x slower than native), completes in ~1-3 seconds.
+// UI stays responsive: encrypt/decrypt runs inside Timeout callbacks
+// (login.rs Phase 1, onboarding.rs Phase 2), yielding to the browser event loop.
+const PBKDF2_ITERATIONS: u32 = 600_000;
 const SALT_LEN: usize = 32;
 const NONCE_LEN: usize = 12;
 const KEY_LEN: usize = 32;
 
 /// Encrypted data container
-#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub struct EncryptedData {
     pub salt: Vec<u8>,
     pub nonce: Vec<u8>,
     pub ciphertext: Vec<u8>,
 }
 
+/// Custom Debug: redacts ciphertext to prevent leaking sensitive data in logs
+impl std::fmt::Debug for EncryptedData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EncryptedData")
+            .field("salt", &format!("[{} bytes]", self.salt.len()))
+            .field("nonce", &format!("[{} bytes]", self.nonce.len()))
+            .field("ciphertext", &format!("[{} bytes REDACTED]", self.ciphertext.len()))
+            .finish()
+    }
+}
+
 /// Derive an AES-256 key from password using PBKDF2-HMAC-SHA256
+/// Returns a key that must be zeroized after use
 fn derive_key(password: &str, salt: &[u8]) -> [u8; KEY_LEN] {
     let mut key = [0u8; KEY_LEN];
     pbkdf2_hmac::<Sha256>(password.as_bytes(), salt, PBKDF2_ITERATIONS, &mut key);
@@ -47,9 +64,10 @@ pub fn encrypt(plaintext: &[u8], password: &str) -> Result<EncryptedData, String
     rng.fill_bytes(&mut salt);
     rng.fill_bytes(&mut nonce_bytes);
 
-    let key = derive_key(password, &salt);
+    let mut key = derive_key(password, &salt);
     let cipher = Aes256Gcm::new_from_slice(&key)
-        .map_err(|e| format!("Cipher init error: {}", e))?;
+        .map_err(|e| { key.zeroize(); format!("Cipher init error: {}", e) })?;
+    key.zeroize();
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     let ciphertext = cipher
@@ -65,9 +83,16 @@ pub fn encrypt(plaintext: &[u8], password: &str) -> Result<EncryptedData, String
 
 /// Decrypt data with AES-256-GCM using a password
 pub fn decrypt(encrypted: &EncryptedData, password: &str) -> Result<Vec<u8>, String> {
-    let key = derive_key(password, &encrypted.salt);
+    if encrypted.nonce.len() != NONCE_LEN {
+        return Err(format!("Invalid nonce length: expected {}, got {}", NONCE_LEN, encrypted.nonce.len()));
+    }
+    if encrypted.salt.len() != SALT_LEN {
+        return Err(format!("Invalid salt length: expected {}, got {}", SALT_LEN, encrypted.salt.len()));
+    }
+    let mut key = derive_key(password, &encrypted.salt);
     let cipher = Aes256Gcm::new_from_slice(&key)
-        .map_err(|e| format!("Cipher init error: {}", e))?;
+        .map_err(|e| { key.zeroize(); format!("Cipher init error: {}", e) })?;
+    key.zeroize();
     let nonce = Nonce::from_slice(&encrypted.nonce);
 
     cipher

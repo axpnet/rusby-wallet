@@ -3,6 +3,8 @@
 
 use leptos::prelude::*;
 
+use crate::i18n::t;
+
 #[component]
 pub fn ConfirmationModal(
     recipient: String,
@@ -19,7 +21,7 @@ pub fn ConfirmationModal(
     let confirm = move |_| {
         let pass = password.get();
         if pass.is_empty() {
-            set_error.set("Enter your password".into());
+            set_error.set(t("confirm.enter_password"));
             return;
         }
         on_confirm.run(pass);
@@ -32,34 +34,34 @@ pub fn ConfirmationModal(
     view! {
         <div class="modal-overlay">
             <div class="modal-content">
-                <h3>"Confirm Transaction"</h3>
+                <h3>{move || t("confirm.title")}</h3>
 
                 <div class="card text-sm">
                     <div class="flex justify-between">
-                        <span class="text-muted">"Network"</span>
+                        <span class="text-muted">{move || t("confirm.network")}</span>
                         <span>{chain}</span>
                     </div>
                     <div class="flex justify-between mt-2">
-                        <span class="text-muted">"To"</span>
+                        <span class="text-muted">{move || t("confirm.to")}</span>
                         <span style="font-family: monospace; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
                             {recipient}
                         </span>
                     </div>
                     <div class="flex justify-between mt-2">
-                        <span class="text-muted">"Amount"</span>
+                        <span class="text-muted">{move || t("confirm.amount")}</span>
                         <span>{amount.clone()} " " {ticker.clone()}</span>
                     </div>
                     <div class="flex justify-between mt-2">
-                        <span class="text-muted">"Est. Fee"</span>
+                        <span class="text-muted">{move || t("confirm.est_fee")}</span>
                         <span>{fee} " " {ticker}</span>
                     </div>
                 </div>
 
                 <div class="input-group">
-                    <label>"Password (to sign)"</label>
+                    <label>{move || t("confirm.password_label")}</label>
                     <input
                         type="password"
-                        placeholder="Enter wallet password"
+                        placeholder={t("confirm.password_placeholder")}
                         prop:value=move || password.get()
                         on:input=move |ev| set_password.set(event_target_value(&ev))
                     />
@@ -74,10 +76,10 @@ pub fn ConfirmationModal(
 
                 <div class="flex gap-2 mt-4">
                     <button class="btn btn-secondary" style="flex: 1;" on:click=cancel>
-                        "Cancel"
+                        {move || t("confirm.cancel")}
                     </button>
                     <button class="btn btn-primary" style="flex: 1;" on:click=confirm>
-                        "Confirm & Sign"
+                        {move || t("confirm.confirm_sign")}
                     </button>
                 </div>
             </div>

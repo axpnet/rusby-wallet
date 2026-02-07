@@ -77,7 +77,7 @@ pub async fn broadcast_tx(tx_json: &str, rpc_url: &str) -> Result<String, String
 
 /// Convert Tendermint RPC URL to REST/LCD endpoint
 /// e.g. cosmos-rpc.polkachu.com → cosmos-rest.polkachu.com
-fn rpc_url_to_rest(rpc_url: &str) -> String {
+pub fn rpc_url_to_rest(rpc_url: &str) -> String {
     if rpc_url.contains("-rpc.") {
         rpc_url.replace("-rpc.", "-rest.")
     } else if rpc_url.contains("rpc.cosmos") {
@@ -86,6 +86,68 @@ fn rpc_url_to_rest(rpc_url: &str) -> String {
         // Fallback: use as-is
         rpc_url.to_string()
     }
+}
+
+/// Get all non-native balances (IBC tokens) from Cosmos bank module
+pub async fn get_all_balances(address: &str, rpc_url: &str, chain_id: &str) -> Result<Vec<wallet_core::tokens::TokenBalance>, String> {
+    use wallet_core::tokens::{Token, TokenBalance};
+
+    let rest_url = rpc_url_to_rest(rpc_url);
+    let url = format!("{}/cosmos/bank/v1beta1/balances/{}", rest_url, address);
+
+    let json = get_json(&url).await?;
+
+    let balances = json["balances"].as_array()
+        .ok_or("Missing balances array")?;
+
+    // Native denoms to skip
+    let native_denoms = match chain_id {
+        "cosmos" => vec!["uatom"],
+        "osmosis" => vec!["uosmo"],
+        _ => vec![],
+    };
+
+    let mut result = Vec::new();
+    for b in balances {
+        let denom = match b["denom"].as_str() {
+            Some(d) => d,
+            None => continue,
+        };
+        if native_denoms.contains(&denom) {
+            continue;
+        }
+        let amount_str = b["amount"].as_str().unwrap_or("0");
+        let raw: u128 = amount_str.parse().unwrap_or(0);
+        if raw == 0 {
+            continue;
+        }
+
+        // IBC tokens: show truncated denom hash
+        let symbol = if denom.starts_with("ibc/") {
+            let hash = &denom[4..];
+            format!("IBC/{}", &hash[..6.min(hash.len())])
+        } else {
+            denom.to_string()
+        };
+
+        // Assume 6 decimals for IBC tokens (standard for Cosmos)
+        let decimals: u8 = 6;
+        let formatted = format_micro(raw as u64, decimals as u32);
+
+        result.push(TokenBalance {
+            token: Token {
+                address: denom.to_string(),
+                symbol,
+                name: denom.to_string(),
+                decimals,
+                chain_id: chain_id.to_string(),
+            },
+            balance: formatted,
+            balance_usd: 0.0,
+        });
+    }
+
+    Ok(result)
 }
 
 fn format_micro(amount: u64, decimals: u32) -> String {

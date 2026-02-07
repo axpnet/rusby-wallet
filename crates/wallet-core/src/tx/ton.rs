@@ -96,7 +96,9 @@ pub fn parse_ton_to_nanoton(amount: &str) -> Result<u64, String> {
         trimmed.parse().map_err(|_| "Invalid decimal part")?
     };
 
-    Ok(integer * 1_000_000_000 + decimals)
+    integer.checked_mul(1_000_000_000)
+        .and_then(|v| v.checked_add(decimals))
+        .ok_or_else(|| "Amount overflow".to_string())
 }
 
 #[cfg(test)]

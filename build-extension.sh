@@ -3,6 +3,15 @@ set -e
 
 echo "Building Rusby Wallet Extension..."
 
+# 0. Build WalletConnect bundle
+echo ">> Building WalletConnect bundle..."
+if [ -f "walletconnect/package.json" ]; then
+    cd walletconnect
+    npm ci --prefer-offline 2>/dev/null || npm install
+    npm run build
+    cd ..
+fi
+
 # 1. Build WASM with trunk (release mode, public-url relative)
 echo ">> Building WASM..."
 trunk build --release --public-url "./"
@@ -18,7 +27,16 @@ cp -r dist/* "$EXT_DIR/"
 # 4. Copy manifest.json
 cp extension/manifest.json "$EXT_DIR/"
 
-# 4b. Fix inline script → external file for CSP compliance
+# 4b. Copy extension JS files (background, content-script, inpage)
+echo ">> Copying extension scripts..."
+cp extension/background.js "$EXT_DIR/"
+cp extension/content-script.js "$EXT_DIR/"
+cp extension/inpage.js "$EXT_DIR/"
+if [ -f "extension/wc-bundle.js" ]; then
+    cp extension/wc-bundle.js "$EXT_DIR/"
+fi
+
+# 4c. Fix inline script → external file for CSP compliance
 echo ">> Fixing inline script for extension CSP..."
 # Extract JS and WASM filenames
 JS_FILE=$(ls "$EXT_DIR"/wallet-ui-*.js 2>/dev/null | head -1 | xargs basename)
@@ -71,6 +89,9 @@ html = html.replace('src=\"/', 'src=\"./')
 html = re.sub(r'\s+integrity=\"[^\"]*\"', '', html)
 # Remove crossorigin attributes
 html = re.sub(r'\s+crossorigin=\"[^\"]*\"', '', html)
+# Inject extension CSP meta tag into <head>
+csp = '<meta http-equiv=\"Content-Security-Policy\" content=\"default-src \\'self\\'; script-src \\'self\\' \\'wasm-unsafe-eval\\'; connect-src https:; style-src \\'self\\' \\'unsafe-inline\\'; img-src \\'self\\' data: https://nft-cdn.alchemy.com https://res.cloudinary.com https://ipfs.io https://gateway.pinata.cloud https://arweave.net https://img-cdn.magiceden.dev https://*.nftstorage.link;\" />'
+html = html.replace('<head>', '<head>\n    ' + csp, 1)
 with open('${EXT_DIR}/index.html', 'w') as f:
     f.write(html)
 "

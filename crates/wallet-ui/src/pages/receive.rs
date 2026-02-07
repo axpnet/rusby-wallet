@@ -4,6 +4,7 @@
 use leptos::prelude::*;
 
 use crate::state::*;
+use crate::i18n::t;
 
 #[component]
 pub fn ReceivePage() -> impl IntoView {
@@ -11,12 +12,12 @@ pub fn ReceivePage() -> impl IntoView {
     let set_page: WriteSignal<AppPage> = expect_context();
     let (copied, set_copied) = signal(false);
 
-    let address = move || wallet_state.get().current_address();
+    let address = move || wallet_state.with(|s| s.current_address());
 
     let active_info = move || {
-        let state = wallet_state.get();
+        let active_chain = wallet_state.with(|s| s.active_chain.clone());
         chain_list().into_iter()
-            .find(|c| c.id == state.active_chain)
+            .find(|c| c.id == active_chain)
             .map(|c| (c.name, c.ticker))
             .unwrap_or(("Unknown".into(), "???".into()))
     };
@@ -37,9 +38,9 @@ pub fn ReceivePage() -> impl IntoView {
         <div class="p-4">
             <div class="flex items-center justify-between mb-4">
                 <button class="btn btn-sm btn-secondary" on:click=move |_| set_page.set(AppPage::Dashboard)>
-                    "< Back"
+                    {move || t("receive.back")}
                 </button>
-                <h2>"Receive " {move || active_info().1}</h2>
+                <h2>{move || t("receive.title")} " " {move || active_info().1}</h2>
                 <div style="width: 60px;" />
             </div>
 
@@ -49,12 +50,12 @@ pub fn ReceivePage() -> impl IntoView {
                     wallet_core::qr::generate_qr_svg(&addr, 200).unwrap_or_default()
                 } />
 
-                <p class="text-sm text-muted">{move || active_info().0} " Address"</p>
+                <p class="text-sm text-muted">{move || active_info().0} " " {move || t("receive.address")}</p>
 
                 <div class="address-display">
                     <span>{address}</span>
                     <button class="copy-btn" on:click=copy_address>
-                        {move || if copied.get() { "Copied!" } else { "Copy" }}
+                        {move || if copied.get() { t("receive.copied") } else { t("receive.copy") }}
                     </button>
                 </div>
             </div>

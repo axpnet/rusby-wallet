@@ -25,18 +25,20 @@ pub struct EvmTransaction {
 impl EvmTransaction {
     /// Encode for signing (without signature fields)
     fn encode_unsigned(&self) -> Vec<u8> {
-        let items: Vec<Vec<u8>> = vec![
-            rlp_encode_u64(self.chain_id_num),
-            rlp_encode_u64(self.nonce),
-            rlp_encode_u128(self.max_priority_fee_per_gas),
-            rlp_encode_u128(self.max_fee_per_gas),
-            rlp_encode_u64(self.gas_limit),
-            self.to.to_vec(),
-            rlp_encode_u128(self.value),
-            self.data.clone(),
-            vec![], // access_list (empty)
-        ];
-        let rlp = rlp_encode_list(&items);
+        // Build RLP payload manually to correctly encode access_list as empty list (0xc0)
+        // instead of empty byte string (0x80)
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u64(self.chain_id_num)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u64(self.nonce)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u128(self.max_priority_fee_per_gas)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u128(self.max_fee_per_gas)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u64(self.gas_limit)));
+        payload.extend_from_slice(&rlp_encode_bytes(&self.to.to_vec()));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u128(self.value)));
+        payload.extend_from_slice(&rlp_encode_bytes(&self.data));
+        payload.push(0xc0); // access_list: RLP empty list (NOT byte string 0x80)
+
+        let rlp = rlp_wrap_list_payload(&payload);
         // EIP-1559: 0x02 || RLP(...)
         let mut result = Vec::with_capacity(1 + rlp.len());
         result.push(0x02);
@@ -67,22 +69,21 @@ impl EvmTransaction {
         let v = recovery_id.to_byte();
 
         // Encode signed: 0x02 || RLP([chain_id, nonce, max_priority_fee, max_fee, gas_limit, to, value, data, access_list, v, r, s])
-        let items: Vec<Vec<u8>> = vec![
-            rlp_encode_u64(self.chain_id_num),
-            rlp_encode_u64(self.nonce),
-            rlp_encode_u128(self.max_priority_fee_per_gas),
-            rlp_encode_u128(self.max_fee_per_gas),
-            rlp_encode_u64(self.gas_limit),
-            self.to.to_vec(),
-            rlp_encode_u128(self.value),
-            self.data.clone(),
-            vec![], // access_list
-            vec![v],
-            r.to_vec(),
-            s.to_vec(),
-        ];
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u64(self.chain_id_num)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u64(self.nonce)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u128(self.max_priority_fee_per_gas)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u128(self.max_fee_per_gas)));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u64(self.gas_limit)));
+        payload.extend_from_slice(&rlp_encode_bytes(&self.to.to_vec()));
+        payload.extend_from_slice(&rlp_encode_bytes(&rlp_encode_u128(self.value)));
+        payload.extend_from_slice(&rlp_encode_bytes(&self.data));
+        payload.push(0xc0); // access_list: RLP empty list
+        payload.extend_from_slice(&rlp_encode_bytes(&vec![v]));
+        payload.extend_from_slice(&rlp_encode_bytes(&r.to_vec()));
+        payload.extend_from_slice(&rlp_encode_bytes(&s.to_vec()));
 
-        let rlp_signed = rlp_encode_list(&items);
+        let rlp_signed = rlp_wrap_list_payload(&payload);
         let mut raw = Vec::with_capacity(1 + rlp_signed.len());
         raw.push(0x02);
         raw.extend_from_slice(&rlp_signed);
@@ -136,7 +137,9 @@ pub fn parse_ether_to_wei(amount: &str) -> Result<u128, String> {
         trimmed.parse().map_err(|_| "Invalid decimal part")?
     };
 
-    Ok(integer * 1_000_000_000_000_000_000u128 + decimals)
+    integer.checked_mul(1_000_000_000_000_000_000u128)
+        .and_then(|v| v.checked_add(decimals))
+        .ok_or_else(|| "Amount overflow".to_string())
 }
 
 // --- RLP encoding helpers ---
@@ -175,6 +178,22 @@ fn rlp_encode_bytes(data: &[u8]) -> Vec<u8> {
         let mut result = vec![0xb7 + len_bytes.len() as u8];
         result.extend_from_slice(&len_bytes);
         result.extend_from_slice(data);
+        result
+    }
+}
+
+/// Wrap pre-encoded RLP payload bytes in a list envelope
+/// Used when payload contains pre-encoded items (e.g., access_list as 0xc0)
+fn rlp_wrap_list_payload(payload: &[u8]) -> Vec<u8> {
+    if payload.len() <= 55 {
+        let mut result = vec![0xc0 + payload.len() as u8];
+        result.extend_from_slice(payload);
+        result
+    } else {
+        let len_bytes = rlp_encode_u64(payload.len() as u64);
+        let mut result = vec![0xf7 + len_bytes.len() as u8];
+        result.extend_from_slice(&len_bytes);
+        result.extend_from_slice(payload);
         result
     }
 }

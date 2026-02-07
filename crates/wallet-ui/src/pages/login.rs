@@ -2,15 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use leptos::prelude::*;
-use wallet_core::wallet::WalletStore;
+use wallet_core::wallet::{self, WalletStore};
+use zeroize::Zeroize;
 
 use crate::state::*;
+use crate::i18n::t;
+use crate::components::SPINNER_SVG;
 
 #[component]
 pub fn Login() -> impl IntoView {
     let (password, set_password) = signal(String::new());
     let (error_msg, set_error_msg) = signal(String::new());
     let (selected_index, set_selected_index) = signal(0usize);
+    let (loading, set_loading) = signal(false);
+    let (show_password, set_show_password) = signal(false);
+    let (loading_text, set_loading_text) = signal(String::new());
 
     let set_page: WriteSignal<AppPage> = expect_context();
     let set_wallet_state: WriteSignal<WalletState> = expect_context();
@@ -20,28 +26,76 @@ pub fn Login() -> impl IntoView {
         serde_json::from_str(&json).ok()
     };
 
+    let load_enabled_chains = move || -> Vec<String> {
+        load_from_storage("enabled_chains")
+            .and_then(|json| serde_json::from_str(&json).ok())
+            .unwrap_or_else(|| vec!["ethereum".to_string()])
+    };
+
     let do_unlock = move || {
+        if loading.get() { return; }
+
         let Some(s) = load_store() else {
-            set_error_msg.set("No wallet data found".into());
+            set_error_msg.set(t("login.no_wallet"));
             return;
         };
 
-        match s.unlock_wallet(selected_index.get(), &password.get()) {
-            Ok(wallet) => {
-                set_wallet_state.set(WalletState {
-                    is_unlocked: true,
-                    wallet_name: wallet.name,
-                    addresses: wallet.addresses,
-                    active_chain: "ethereum".into(),
-                    balances: std::collections::HashMap::new(),
-                    balance_loading: false,
-                });
-                set_page.set(AppPage::Dashboard);
+        let pass = password.get();
+        let idx = selected_index.get();
+        let chains = load_enabled_chains();
+
+        // Show loading, then defer heavy PBKDF2 computation to let UI render
+        set_loading.set(true);
+        set_loading_text.set(t("loading.pbkdf2_decrypt"));
+        set_error_msg.set(String::new());
+
+        // Two-phase unlock to avoid blocking main thread for >5s:
+        // Phase 1 (Timeout 50ms): PBKDF2 decrypt seed (~1-3s)
+        // Phase 2 (Timeout 0ms):  Derive chain addresses (~1-3s)
+        gloo_timers::callback::Timeout::new(50, move || {
+            // Phase 1: decrypt seed (PBKDF2)
+            match s.decrypt_seed(idx, &pass) {
+                Ok((name, created_at, seed)) => {
+                    // Phase 2: derive addresses (deferred to next event loop tick)
+                    set_loading_text.set(t("loading.deriving_keys"));
+                    gloo_timers::callback::Timeout::new(0, move || {
+                        let chain_strs: Vec<&str> = chains.iter().map(|s| s.as_str()).collect();
+                        let mut seed_copy = seed;
+                        match wallet::derive_addresses_filtered(&seed_copy, false, Some(&chain_strs)) {
+                            Ok(addresses) => {
+                                seed_copy.zeroize();
+                                let active = chains.first()
+                                    .map(|s| s.as_str())
+                                    .unwrap_or("ethereum")
+                                    .to_string();
+
+                                set_wallet_state.set(WalletState {
+                                    is_unlocked: true,
+                                    wallet_name: name,
+                                    addresses,
+                                    active_chain: active,
+                                    balances: std::collections::HashMap::new(),
+                                    balance_loading: false,
+                                    prices: std::collections::HashMap::new(),
+                                    token_balances: std::collections::HashMap::new(),
+                                    nfts: Vec::new(),
+                                });
+                                set_page.set(AppPage::Dashboard);
+                            }
+                            Err(e) => {
+                                seed_copy.zeroize();
+                                set_loading.set(false);
+                                set_error_msg.set(format!("Error: {}", e));
+                            }
+                        }
+                    }).forget();
+                }
+                Err(_) => {
+                    set_loading.set(false);
+                    set_error_msg.set(t("login.wrong_password"));
+                }
             }
-            Err(_) => {
-                set_error_msg.set("Wrong password".into());
-            }
-        }
+        }).forget();
     };
 
     let unlock_click = move |_| do_unlock();
@@ -58,7 +112,7 @@ pub fn Login() -> impl IntoView {
 
     view! {
         <div class="p-4">
-            <h2 class="text-center mb-4">"Unlock Wallet"</h2>
+            <h2 class="text-center mb-4">{move || t("login.title")}</h2>
 
             <div class="chain-list mb-4">
                 {move || {
@@ -86,17 +140,28 @@ pub fn Login() -> impl IntoView {
             </div>
 
             <div class="input-group">
-                <label>"Password"</label>
-                <input
-                    type="password"
-                    placeholder="Enter your password..."
-                    prop:value=move || password.get()
-                    on:input=move |ev| {
-                        set_password.set(event_target_value(&ev));
-                        set_error_msg.set(String::new());
-                    }
-                    on:keydown=unlock_enter
-                />
+                <label>{move || t("login.password")}</label>
+                <div style="position: relative;">
+                    <input
+                        type=move || if show_password.get() { "text" } else { "password" }
+                        placeholder=t("login.password_placeholder")
+                        prop:value=move || password.get()
+                        on:input=move |ev| {
+                            set_password.set(event_target_value(&ev));
+                            set_error_msg.set(String::new());
+                        }
+                        on:keydown=unlock_enter
+                        style="padding-right: 40px;"
+                    />
+                    <button
+                        type="button"
+                        tabindex="-1"
+                        style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px;"
+                        on:click=move |_| set_show_password.set(!show_password.get())
+                    >
+                        {move || if show_password.get() { "\u{1F648}" } else { "\u{1F441}" }}
+                    </button>
+                </div>
             </div>
 
             {move || {
@@ -106,12 +171,24 @@ pub fn Login() -> impl IntoView {
                 }
             }}
 
-            <button class="btn btn-primary btn-block" on:click=unlock_click>
-                "Unlock"
+            <button
+                class="btn btn-primary btn-block"
+                on:click=unlock_click
+                disabled=move || loading.get()
+                style="display: flex; align-items: center; justify-content: center; gap: 8px;"
+            >
+                {move || loading.get().then(|| view! { <span inner_html=SPINNER_SVG /> })}
+                {move || if loading.get() {
+                    loading_text.get()
+                } else {
+                    t("login.unlock")
+                }}
             </button>
 
-            <button class="btn btn-secondary btn-block mt-4" on:click=go_to_create>
-                "Create New Wallet"
+            <button class="btn btn-secondary btn-block mt-4" on:click=go_to_create
+                disabled=move || loading.get()
+            >
+                {move || t("login.create_new")}
             </button>
         </div>
     }

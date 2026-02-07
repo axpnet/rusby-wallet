@@ -123,6 +123,117 @@ impl CosmosMsgSend {
     }
 }
 
+/// Cosmos wasm MsgExecuteContract transaction (CW-20 transfers)
+#[derive(Debug, Clone)]
+pub struct CosmosMsgExecuteContract {
+    pub sender: String,
+    pub contract: String,
+    pub msg_json: String,
+    pub chain_id_str: String,
+    pub account_number: u64,
+    pub sequence: u64,
+    pub gas_limit: u64,
+    pub fee_amount: u64,
+    pub fee_denom: String,
+}
+
+impl CosmosMsgExecuteContract {
+    /// Build the Amino JSON sign doc for MsgExecuteContract
+    fn build_sign_doc(&self) -> String {
+        // Parse msg_json to include as nested JSON
+        let msg_value: serde_json::Value = serde_json::from_str(&self.msg_json)
+            .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+
+        serde_json::json!({
+            "account_number": self.account_number.to_string(),
+            "chain_id": self.chain_id_str,
+            "fee": {
+                "amount": [{
+                    "amount": self.fee_amount.to_string(),
+                    "denom": &self.fee_denom,
+                }],
+                "gas": self.gas_limit.to_string(),
+            },
+            "memo": "",
+            "msgs": [{
+                "type": "wasm/MsgExecuteContract",
+                "value": {
+                    "contract": &self.contract,
+                    "funds": [],
+                    "msg": msg_value,
+                    "sender": &self.sender,
+                }
+            }],
+            "sequence": self.sequence.to_string(),
+        }).to_string()
+    }
+
+    /// Sign with secp256k1 private key
+    pub fn sign(&self, private_key: &[u8; 32], chain_id: ChainId) -> Result<SignedTransaction, String> {
+        let sign_doc = self.build_sign_doc();
+
+        let msg_value: serde_json::Value = serde_json::from_str(&self.msg_json)
+            .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+
+        let mut hasher = Sha256::new();
+        hasher.update(sign_doc.as_bytes());
+        let hash = hasher.finalize();
+        let hash_bytes: [u8; 32] = hash.into();
+
+        let signing_key = SigningKey::from_bytes(private_key.into())
+            .map_err(|e| format!("Invalid key: {}", e))?;
+        let (signature, _) = signing_key
+            .sign_prehash(&hash_bytes)
+            .map_err(|e| format!("Signing error: {}", e))?;
+
+        let sig_bytes = signature.to_bytes();
+
+        let public_key = signing_key.verifying_key();
+        let pubkey_compressed = public_key.to_encoded_point(true);
+        let pubkey_b64 = base64_encode(pubkey_compressed.as_bytes());
+        let sig_b64 = base64_encode(&sig_bytes);
+
+        let tx_json = serde_json::json!({
+            "tx": {
+                "msg": [{
+                    "type": "wasm/MsgExecuteContract",
+                    "value": {
+                        "contract": &self.contract,
+                        "funds": [],
+                        "msg": msg_value,
+                        "sender": &self.sender,
+                    }
+                }],
+                "fee": {
+                    "amount": [{
+                        "amount": self.fee_amount.to_string(),
+                        "denom": &self.fee_denom,
+                    }],
+                    "gas": self.gas_limit.to_string(),
+                },
+                "signatures": [{
+                    "pub_key": {
+                        "type": "tendermint/PubKeySecp256k1",
+                        "value": pubkey_b64,
+                    },
+                    "signature": sig_b64,
+                }],
+                "memo": "",
+            },
+            "mode": "sync",
+        });
+
+        let tx_bytes = tx_json.to_string().into_bytes();
+        let tx_hash = format!("0x{}", hex::encode(&hash_bytes));
+
+        Ok(SignedTransaction {
+            chain_id,
+            raw_bytes: tx_bytes,
+            tx_hash,
+        })
+    }
+}
+
 /// Parse uatom/uosmo from decimal amount (6 decimals)
 pub fn parse_atom_to_uatom(amount: &str) -> Result<u64, String> {
     let parts: Vec<&str> = amount.split('.').collect();
